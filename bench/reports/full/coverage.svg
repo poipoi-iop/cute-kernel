@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="575" viewBox="0 0 1120 575">
+<title>Benchmark coverage and validation status</title>
+<rect width="100%" height="100%" fill="#fff"/>
+<style>text{font-family:Arial,sans-serif;fill:#1e293b;font-size:12px}.title{font-size:21px;font-weight:600}.sub{fill:#64748b}</style>
+<text x="32" y="36" class="title">Benchmark coverage and validation status</text>
+<text x="32" y="63" class="sub">Counts of records, not performance. Failed or unavailable entries have no timing values.</text>
+<text x="32" y="106">gemm / cublas</text>
+<rect x="350" y="92" width="168.8" height="19" fill="#059669"><title>ok: 15</title></rect>
+<text x="730" y="106">ok: 15</text>
+<text x="32" y="136">gemm / cublaslt</text>
+<rect x="350" y="122" width="168.8" height="19" fill="#059669"><title>ok: 15</title></rect>
+<text x="730" y="136">ok: 15</text>
+<text x="32" y="166">gemm / cutlass_sm80</text>
+<rect x="350" y="152" width="146.2" height="19" fill="#059669"><title>ok: 13</title></rect>
+<rect x="496.25" y="152" width="22.5" height="19" fill="#d97706"><title>unsupported: 2</title></rect>
+<text x="730" y="166">ok: 13, unsupported: 2</text>
+<text x="32" y="196">gemm / hgemm_splitk</text>
+<rect x="350" y="182" width="168.8" height="19" fill="#059669"><title>ok: 15</title></rect>
+<text x="730" y="196">ok: 15</text>
+<text x="32" y="226">gemm / hgemm_splitk_s1</text>
+<rect x="350" y="212" width="168.8" height="19" fill="#059669"><title>ok: 15</title></rect>
+<text x="730" y="226">ok: 15</text>
+<text x="32" y="256">gemm / original_hgemm</text>
+<rect x="350" y="242" width="101.2" height="19" fill="#059669"><title>ok: 9</title></rect>
+<rect x="451.25" y="242" width="67.5" height="19" fill="#d97706"><title>unsupported: 6</title></rect>
+<text x="730" y="256">ok: 9, unsupported: 6</text>
+<text x="32" y="286">gemv / cublas</text>
+<rect x="350" y="272" width="360.0" height="19" fill="#059669"><title>ok: 32</title></rect>
+<text x="730" y="286">ok: 32</text>
+<text x="32" y="316">gemv / cublaslt</text>
+<rect x="350" y="302" width="360.0" height="19" fill="#059669"><title>ok: 32</title></rect>
+<text x="730" y="316">ok: 32</text>
+<text x="32" y="346">gemv / gemv</text>
+<rect x="350" y="332" width="360.0" height="19" fill="#059669"><title>ok: 32</title></rect>
+<text x="730" y="346">ok: 32</text>
+<text x="32" y="376">online_softmax / original_online_softmax</text>
+<rect x="350" y="362" width="112.5" height="19" fill="#059669"><title>ok: 10</title></rect>
+<rect x="462.5" y="362" width="11.2" height="19" fill="#d97706"><title>unsupported: 1</title></rect>
+<text x="730" y="376">ok: 10, unsupported: 1</text>
+<text x="32" y="406">online_softmax / pytorch_eager</text>
+<rect x="350" y="392" width="123.8" height="19" fill="#059669"><title>ok: 11</title></rect>
+<text x="730" y="406">ok: 11</text>
+<text x="32" y="436">rms_norm / original_rms_norm</text>
+<rect x="350" y="422" width="112.5" height="19" fill="#059669"><title>ok: 10</title></rect>
+<rect x="462.5" y="422" width="11.2" height="19" fill="#d97706"><title>unsupported: 1</title></rect>
+<text x="730" y="436">ok: 10, unsupported: 1</text>
+<text x="32" y="466">rms_norm / pytorch_eager</text>
+<rect x="350" y="452" width="123.8" height="19" fill="#059669"><title>ok: 11</title></rect>
+<text x="730" y="466">ok: 11</text>
+<text x="32" y="496">softmax / original_softmax</text>
+<rect x="350" y="482" width="112.5" height="19" fill="#059669"><title>ok: 10</title></rect>
+<rect x="462.5" y="482" width="11.2" height="19" fill="#d97706"><title>unsupported: 1</title></rect>
+<text x="730" y="496">ok: 10, unsupported: 1</text>
+<text x="32" y="526">softmax / pytorch_eager</text>
+<rect x="350" y="512" width="123.8" height="19" fill="#059669"><title>ok: 11</title></rect>
+<text x="730" y="526">ok: 11</text>
+</svg>

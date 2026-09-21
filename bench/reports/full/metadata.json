@@ -1,0 +1,605 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-09-21T04:19:00.095273+00:00",
+  "platform": "Linux-5.15.0-113-generic-x86_64-with-glibc2.35",
+  "python": "3.12.14 (main, Sep  1 2026, 14:16:52) [Clang 22.1.3 ]",
+  "gpu": {
+    "status": "ok",
+    "device": 0,
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "sm": 120,
+    "multiprocessors": 170,
+    "total_memory_bytes": 33680326656,
+    "l2_bytes": 100663296,
+    "cuda_runtime": 12080,
+    "cuda_driver": 12080,
+    "cublas_version": 120803
+  },
+  "options": {
+    "build_dir": "/home/ubuntu/cute-kernel/bench/build",
+    "output": "bench/reports/full",
+    "shapes": "/home/ubuntu/cute-kernel/bench/shapes.json",
+    "ops": "gemm,gemv,softmax,online_softmax,rms_norm",
+    "quick": false,
+    "timing": "graph",
+    "device": 0,
+    "warmup": 10,
+    "iterations": 50,
+    "samples": 9,
+    "seed": 17,
+    "no_tune": false,
+    "torch_compile": false,
+    "timeout": 600
+  },
+  "cases": [
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 16,
+      "n": 16,
+      "k": 32768
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 32,
+      "n": 64,
+      "k": 16384
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 64,
+      "n": 64,
+      "k": 4096
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 64,
+      "n": 128,
+      "k": 8192
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 128,
+      "n": 128,
+      "k": 4096
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 128,
+      "n": 256,
+      "k": 16384
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 256,
+      "n": 256,
+      "k": 256
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 512,
+      "n": 512,
+      "k": 512
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 1024,
+      "n": 1024,
+      "k": 1024
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 2048,
+      "n": 2048,
+      "k": 2048
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 4096,
+      "n": 4096,
+      "k": 4096
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 128,
+      "n": 4096,
+      "k": 4096
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 4096,
+      "n": 128,
+      "k": 4096
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 127,
+      "n": 193,
+      "k": 1001
+    },
+    {
+      "op": "gemm",
+      "dtype": "fp16",
+      "m": 65,
+      "n": 129,
+      "k": 40
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 1,
+      "n": 1,
+      "k": 4096
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 1,
+      "n": 1,
+      "k": 4096
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 8,
+      "n": 1,
+      "k": 16384
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 8,
+      "n": 1,
+      "k": 16384
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 32,
+      "n": 1,
+      "k": 32768
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 32,
+      "n": 1,
+      "k": 32768
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 128,
+      "n": 1,
+      "k": 8192
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 128,
+      "n": 1,
+      "k": 8192
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 256,
+      "n": 1,
+      "k": 1024
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 256,
+      "n": 1,
+      "k": 1024
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 512,
+      "n": 1,
+      "k": 512
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 512,
+      "n": 1,
+      "k": 512
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 1024,
+      "n": 1,
+      "k": 1024
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 1024,
+      "n": 1,
+      "k": 1024
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 2048,
+      "n": 1,
+      "k": 4096
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 2048,
+      "n": 1,
+      "k": 4096
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 4096,
+      "n": 1,
+      "k": 4096
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 4096,
+      "n": 1,
+      "k": 4096
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 8192,
+      "n": 1,
+      "k": 4096
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 8192,
+      "n": 1,
+      "k": 4096
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 16384,
+      "n": 1,
+      "k": 4096
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 16384,
+      "n": 1,
+      "k": 4096
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 4096,
+      "n": 1,
+      "k": 16384
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 4096,
+      "n": 1,
+      "k": 16384
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 65536,
+      "n": 1,
+      "k": 1024
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 65536,
+      "n": 1,
+      "k": 1024
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 1003,
+      "n": 1,
+      "k": 777
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 1003,
+      "n": 1,
+      "k": 777
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 17,
+      "n": 1,
+      "k": 33
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 17,
+      "n": 1,
+      "k": 33
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp16",
+      "m": 4096,
+      "n": 1,
+      "k": 128
+    },
+    {
+      "op": "gemv",
+      "dtype": "fp32",
+      "m": 4096,
+      "n": 1,
+      "k": 128
+    },
+    {
+      "op": "softmax",
+      "dtype": "fp32",
+      "m": 1,
+      "n": 128,
+      "k": 0
+    },
+    {
+      "op": "softmax",
+      "dtype": "fp32",
+      "m": 32,
+      "n": 128,
+      "k": 0
+    },
+    {
+      "op": "softmax",
+      "dtype": "fp32",
+      "m": 256,
+      "n": 256,
+      "k": 0
+    },
+    {
+      "op": "softmax",
+      "dtype": "fp32",
+      "m": 1024,
+      "n": 512,
+      "k": 0
+    },
+    {
+      "op": "softmax",
+      "dtype": "fp32",
+      "m": 128,
+      "n": 768,
+      "k": 0
+    },
+    {
+      "op": "softmax",
+      "dtype": "fp32",
+      "m": 1024,
+      "n": 1024,
+      "k": 0
+    },
+    {
+      "op": "softmax",
+      "dtype": "fp32",
+      "m": 256,
+      "n": 2048,
+      "k": 0
+    },
+    {
+      "op": "softmax",
+      "dtype": "fp32",
+      "m": 128,
+      "n": 4096,
+      "k": 0
+    },
+    {
+      "op": "softmax",
+      "dtype": "fp32",
+      "m": 64,
+      "n": 8192,
+      "k": 0
+    },
+    {
+      "op": "softmax",
+      "dtype": "fp32",
+      "m": 32,
+      "n": 16384,
+      "k": 0
+    },
+    {
+      "op": "softmax",
+      "dtype": "fp32",
+      "m": 17,
+      "n": 131,
+      "k": 0
+    },
+    {
+      "op": "online_softmax",
+      "dtype": "fp32",
+      "m": 1,
+      "n": 128,
+      "k": 0
+    },
+    {
+      "op": "online_softmax",
+      "dtype": "fp32",
+      "m": 32,
+      "n": 128,
+      "k": 0
+    },
+    {
+      "op": "online_softmax",
+      "dtype": "fp32",
+      "m": 256,
+      "n": 256,
+      "k": 0
+    },
+    {
+      "op": "online_softmax",
+      "dtype": "fp32",
+      "m": 1024,
+      "n": 512,
+      "k": 0
+    },
+    {
+      "op": "online_softmax",
+      "dtype": "fp32",
+      "m": 128,
+      "n": 768,
+      "k": 0
+    },
+    {
+      "op": "online_softmax",
+      "dtype": "fp32",
+      "m": 1024,
+      "n": 1024,
+      "k": 0
+    },
+    {
+      "op": "online_softmax",
+      "dtype": "fp32",
+      "m": 256,
+      "n": 2048,
+      "k": 0
+    },
+    {
+      "op": "online_softmax",
+      "dtype": "fp32",
+      "m": 128,
+      "n": 4096,
+      "k": 0
+    },
+    {
+      "op": "online_softmax",
+      "dtype": "fp32",
+      "m": 64,
+      "n": 8192,
+      "k": 0
+    },
+    {
+      "op": "online_softmax",
+      "dtype": "fp32",
+      "m": 32,
+      "n": 16384,
+      "k": 0
+    },
+    {
+      "op": "online_softmax",
+      "dtype": "fp32",
+      "m": 17,
+      "n": 131,
+      "k": 0
+    },
+    {
+      "op": "rms_norm",
+      "dtype": "fp32",
+      "m": 1,
+      "n": 128,
+      "k": 0
+    },
+    {
+      "op": "rms_norm",
+      "dtype": "fp32",
+      "m": 32,
+      "n": 128,
+      "k": 0
+    },
+    {
+      "op": "rms_norm",
+      "dtype": "fp32",
+      "m": 256,
+      "n": 256,
+      "k": 0
+    },
+    {
+      "op": "rms_norm",
+      "dtype": "fp32",
+      "m": 1024,
+      "n": 512,
+      "k": 0
+    },
+    {
+      "op": "rms_norm",
+      "dtype": "fp32",
+      "m": 128,
+      "n": 768,
+      "k": 0
+    },
+    {
+      "op": "rms_norm",
+      "dtype": "fp32",
+      "m": 1024,
+      "n": 1024,
+      "k": 0
+    },
+    {
+      "op": "rms_norm",
+      "dtype": "fp32",
+      "m": 256,
+      "n": 2048,
+      "k": 0
+    },
+    {
+      "op": "rms_norm",
+      "dtype": "fp32",
+      "m": 128,
+      "n": 4096,
+      "k": 0
+    },
+    {
+      "op": "rms_norm",
+      "dtype": "fp32",
+      "m": 64,
+      "n": 8192,
+      "k": 0
+    },
+    {
+      "op": "rms_norm",
+      "dtype": "fp32",
+      "m": 32,
+      "n": 16384,
+      "k": 0
+    },
+    {
+      "op": "rms_norm",
+      "dtype": "fp32",
+      "m": 17,
+      "n": 131,
+      "k": 0
+    }
+  ],
+  "torch_installed": true,
+  "timing_scope": "device execution of full operation, including Split-K reduction; setup and copies excluded",
+  "cache_policy": "warm_reuse: repeatedly use the same allocations; effective GB/s is logical traffic, not measured HBM traffic",
+  "accuracy": {
+    "gemm": "all outputs vs cuBLAS FP32 accumulate; reference independently spot-checked in CPU FP64",
+    "gemv": "all outputs vs CPU FP64",
+    "normalization": "all outputs vs CPU FP64"
+  },
+  "performance_claim": "No SOTA claim; only valid measured cases can support a GPU/shape-specific comparison."
+}

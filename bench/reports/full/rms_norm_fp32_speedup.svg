@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="650" viewBox="0 0 1000 650">
+<title>rms_norm · fp32 · speedup</title>
+<rect width="100%" height="100%" fill="#fff"/>
+<style>text{font-family:Arial,sans-serif;fill:#1e293b;font-size:12px}.title{font-size:21px;font-weight:600}.sub{fill:#64748b}</style>
+<text x="32" y="36" class="title">rms_norm · fp32 · speedup</text>
+<text x="32" y="62" class="sub">Speedup vs fastest measured industrial baseline · log scale · only correctness-passing results · warm allocation reuse</text>
+<line x1="85" x2="955" y1="470.0" y2="470.0" stroke="#e2e8f0"/>
+<text x="76" y="474.0" text-anchor="end">0.1</text>
+<line x1="85" x2="955" y1="302.5" y2="302.5" stroke="#e2e8f0"/>
+<text x="76" y="306.5" text-anchor="end">1</text>
+<line x1="85" x2="955" y1="135.0" y2="135.0" stroke="#e2e8f0"/>
+<text x="76" y="139.0" text-anchor="end">10</text>
+<text transform="translate(128.5,486) rotate(50)" text-anchor="start">1×128</text>
+<text transform="translate(215.5,486) rotate(50)" text-anchor="start">32×128</text>
+<text transform="translate(302.5,486) rotate(50)" text-anchor="start">256×256</text>
+<text transform="translate(389.5,486) rotate(50)" text-anchor="start">1024×512</text>
+<text transform="translate(476.5,486) rotate(50)" text-anchor="start">128×768</text>
+<text transform="translate(563.5,486) rotate(50)" text-anchor="start">1024×1024</text>
+<text transform="translate(650.5,486) rotate(50)" text-anchor="start">256×2048</text>
+<text transform="translate(737.5,486) rotate(50)" text-anchor="start">128×4096</text>
+<text transform="translate(824.5,486) rotate(50)" text-anchor="start">64×8192</text>
+<text transform="translate(911.5,486) rotate(50)" text-anchor="start">32×16384</text>
+<circle cx="35.0" cy="88" r="4" fill="#2563eb"/><text x="45.0" y="92">original_rms_norm</text>
+<circle cx="128.5" cy="286.8" r="4" fill="#2563eb"><title>original_rms_norm: 1×128; speedup=1.2413; unchanged_original,threads=256</title></circle>
+<circle cx="215.5" cy="286.0" r="4" fill="#2563eb"><title>original_rms_norm: 32×128; speedup=1.254; unchanged_original,threads=256</title></circle>
+<circle cx="302.5" cy="289.2" r="4" fill="#2563eb"><title>original_rms_norm: 256×256; speedup=1.2; unchanged_original,threads=256</title></circle>
+<circle cx="389.5" cy="300.5" r="4" fill="#2563eb"><title>original_rms_norm: 1024×512; speedup=1.0278; unchanged_original,threads=256</title></circle>
+<circle cx="476.5" cy="283.7" r="4" fill="#2563eb"><title>original_rms_norm: 128×768; speedup=1.2941; unchanged_original,threads=256</title></circle>
+<circle cx="563.5" cy="290.6" r="4" fill="#2563eb"><title>original_rms_norm: 1024×1024; speedup=1.1775; unchanged_original,threads=256</title></circle>
+<circle cx="650.5" cy="295.9" r="4" fill="#2563eb"><title>original_rms_norm: 256×2048; speedup=1.0948; unchanged_original,threads=256</title></circle>
+<circle cx="737.5" cy="301.1" r="4" fill="#2563eb"><title>original_rms_norm: 128×4096; speedup=1.0198; unchanged_original,threads=256</title></circle>
+<circle cx="824.5" cy="307.0" r="4" fill="#2563eb"><title>original_rms_norm: 64×8192; speedup=0.93981; unchanged_original,threads=256</title></circle>
+<circle cx="911.5" cy="314.0" r="4" fill="#2563eb"><title>original_rms_norm: 32×16384; speedup=0.85375; unchanged_original,threads=256</title></circle>
+<line x1="128.5" y1="286.8" x2="215.5" y2="286.0" stroke="#2563eb" opacity="0.35"/>
+<line x1="215.5" y1="286.0" x2="302.5" y2="289.2" stroke="#2563eb" opacity="0.35"/>
+<line x1="302.5" y1="289.2" x2="389.5" y2="300.5" stroke="#2563eb" opacity="0.35"/>
+<line x1="389.5" y1="300.5" x2="476.5" y2="283.7" stroke="#2563eb" opacity="0.35"/>
+<line x1="476.5" y1="283.7" x2="563.5" y2="290.6" stroke="#2563eb" opacity="0.35"/>
+<line x1="563.5" y1="290.6" x2="650.5" y2="295.9" stroke="#2563eb" opacity="0.35"/>
+<line x1="650.5" y1="295.9" x2="737.5" y2="301.1" stroke="#2563eb" opacity="0.35"/>
+<line x1="737.5" y1="301.1" x2="824.5" y2="307.0" stroke="#2563eb" opacity="0.35"/>
+<line x1="824.5" y1="307.0" x2="911.5" y2="314.0" stroke="#2563eb" opacity="0.35"/>
+<line x1="85" x2="955" y1="302.5" y2="302.5" stroke="#334155" stroke-dasharray="5 4"/>
+<text x="32" y="625" class="sub">Shapes are categorical. Latency whiskers: minimum–p95. Speedup baseline: fastest valid industrial provider per shape.</text>
+</svg>

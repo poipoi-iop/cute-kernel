@@ -1,5 +1,4 @@
 #include <cuda_runtime.h>
-#include <numeric>
 
 __device__ float warp_reduce_max(float val) {
     for (int s = 16; s >= 1; s >>= 1) {
@@ -40,7 +39,7 @@ __global__ void softmax(float* input, float* output) {
     __shared__ float final_max;
     __shared__ float final_sum;
 
-    constexpr float INF = std::numeric_limits<float>::min();
+    constexpr float INF = 1e-9;
 
     float max_val = std::numeric_limits<float>::min();
     for (int i = tid; i < n4; i += block_size) {
@@ -70,7 +69,7 @@ __global__ void softmax(float* input, float* output) {
     float sum = 0.f;
     for (int i = tid; i < n4; i += block_size) {
         float4 tmp = inp4[i];
-        sum += (expf(tmp.x - final_max) + expf(tmp.y - final_max) + expf(tmp.z - final_max), expf(tmp.w - final_max));
+        sum += (expf(tmp.x - final_max) + expf(tmp.y - final_max) + expf(tmp.z - final_max) + expf(tmp.w - final_max));
     }
     for (int i = tid + 4 * n4; i < COL; i += block_size) {
         sum += expf(inp[i] - final_max);
@@ -83,7 +82,7 @@ __global__ void softmax(float* input, float* output) {
 
     if (warp_id == 0) {
         sum = (lane_id < num_warps) ? warp_result[lane_id] : 0.f;
-        sum = warp_reduce_sum(local_sum);
+        sum = warp_reduce_sum(sum);
     }
 
     if (tid == 0) {
@@ -97,15 +96,15 @@ __global__ void softmax(float* input, float* output) {
     for (int i = tid; i < n4; i += block_size) {
         float4 tmp = inp4[i];
         float4 result;
-        result.x = expf(tmp.x - final_sum) * inv;
-        result.y = expf(tmp.y - final_sum) * inv;
-        result.z = expf(tmp.z - final_sum) * inv;
-        result.w = expf(tmp.w - final_sum) * inv;
-        oup[4] = result;
+        result.x = expf(tmp.x - final_max) * inv;
+        result.y = expf(tmp.y - final_max) * inv;
+        result.z = expf(tmp.z - final_max) * inv;
+        result.w = expf(tmp.w - final_max) * inv;
+        oup4[i] = result;
     }
 
     for (int i = tid + 4 * n4; i < COL; i += block_size) {
-        oup[i] = expf(inp[i] - final_sum);
+        oup[i] = expf(inp[i] - final_max) * inv;
     }
 }
 
@@ -128,7 +127,7 @@ __global__ void online_softmax(float* input, float* output) {
     __shared__ float final_max;
     __shared__ float final_sum;
 
-    float inf = std::numeric_limits<float>::min();
+    float inf = 1e-9;
 
     float local_max = inf;
     float local_sum = 0.f;
@@ -136,15 +135,16 @@ __global__ void online_softmax(float* input, float* output) {
         float4 tmp = inp4[i];
         float vec[4] = {tmp.x, tmp.y, tmp.z, tmp.w};
         for (int j = 0; j < 4; ++j) {
-            float local_max_new = fmaxf(vec[i], local_max);
-            local_sum = local_sum * expf(local_max - local_max_new) + expf(vec[i] - local_max_new);
+            float local_max_new = fmaxf(vec[j], local_max);
+            local_sum = local_sum * expf(local_max - local_max_new) + expf(vec[j] - local_max_new);
             local_max = local_max_new;
         }
     }
 
-    for (int i = tid + n4 * f; i < COL; i += block_size) {
-        float local_max_new = fmaxf(inp[i], local_max);
-        local_sum = local_sum * expf(local_max - local_max_new) + expf(vec[i] - local_max_new);
+    for (int i = tid + n4 * 4; i < COL; i += block_size) {
+        float tmp = inp[i];
+        float local_max_new = fmaxf(tmp, local_max);
+        local_sum = local_sum * expf(local_max - local_max_new) + expf(tmp - local_max_new);
         local_max = local_max_new;
     }
 

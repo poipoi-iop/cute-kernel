@@ -1,0 +1,5 @@
+**/build/
+results/
+**/__pycache__/
+**/*.log
+**/build_manifest.json

@@ -7,6 +7,7 @@ template <typename T_, const int kTileM_ = 128, const int kTIleN_ = 128, const i
           const int kStage_ = 5, const int kSmemLayoutCBatch_ = 2, 
           typename ComputeType = T_>
 class Config {
+public:
     static constexpr int kTileM = kTileM_;
     static constexpr int kTileN = kTIleN_;
     static constexpr int kTileK = kTileK_;
@@ -21,7 +22,7 @@ class Config {
 
     using T = T_;
 
-    using mma_op = SM80_16x8x16_F16F16F16F16_TN;
+    using mma_op = SM80_16x8x16_F32F16F16F32_TN;
     using mma_traits = MMA_Traits<mma_op>;
     using mma_atom = MMA_Atom<mma_traits>;
 
@@ -31,9 +32,11 @@ class Config {
     static constexpr int kMmaPK = 1 * kMmaEURepeatK * get<2>(mma_shape{});
 
     using TiledMMA = decltype(
-        mma_op{},
-        make_layout(make_shape(Int<kMmaEURepeatM>{}, Int<kMmaEURepeatN>{}, Int<kMmaEURepeatK>{})),
-        Tile<Int<kMmaPM>, Int<kMmaPN>, Int<kMmaPK>>
+        make_tiled_mma(
+            mma_op{},
+            make_layout(make_shape(Int<kMmaEURepeatM>{}, Int<kMmaEURepeatN>{}, Int<kMmaEURepeatK>{})),
+            make_tile(Int<kMmaPM>{}, Int<kMmaPN>{}, Int<kMmaPK>{})
+        )
     );
 
     using g2s_copy_op = SM80_CP_ASYNC_CACHEGLOBAL<uint128_t>;
@@ -59,12 +62,12 @@ class Config {
     static constexpr int kCopySwizzleS = 3;
 
     using SmemLayoutAtom = decltype(composition(
-        Swizzle<Int<kCopySwizzleB>, Int<kCopySwizzleM>, Int<kCopySwizzleS>>,
+        Swizzle<kCopySwizzleB, kCopySwizzleM, kCopySwizzleS>{},
         make_layout(make_shape(_8{}, Int<kTileK>{}), make_stride(Int<kTileK>{}, _1{}))
     ));
 
     using SmemLayoutA = decltype(
-        tile_to_shape(SmemLayoutAtom{}, make_shape(Int<kTileM>{}, Int<kTileN>{}, Int<kStage>{}))
+        tile_to_shape(SmemLayoutAtom{}, make_shape(Int<kTileM>{}, Int<kTileK>{}, Int<kStage>{}))
     );
     using SmemLayoutB = decltype(
         tile_to_shape(SmemLayoutAtom{}, make_shape(Int<kTileN>{}, Int<kTileK>{}, Int<kStage>{}))
@@ -72,18 +75,21 @@ class Config {
 
     using SmemLayoutCAtom = decltype(composition(
         Swizzle<2, 3, 3>{},
-        make_layout(make_shape(Int<kMmaPM>{}, Int<kMmaPN>{}), make_stride(Int<KMmaPN>{}, _1{}));
+        make_layout(make_shape(Int<kMmaPM>{}, Int<kMmaPN>{}), make_stride(Int<kMmaPN>{}, _1{}))
     ));
 
     using SmemLayoutC = decltype(
-        tile_to_shape(SmemLayoutCAtom{}, make_shape(Int<kMmaPM>{}, Int<KMmaPN>{}, Int<kSmemLayoutCBatch>))
+        tile_to_shape(SmemLayoutCAtom{}, make_shape(Int<kMmaPM>{}, Int<kMmaPN>{}, Int<kSmemLayoutCBatch>{}))
     );
 
     using r2s_copy_atom_c = Copy_Atom<UniversalCopy<int>, T>;
     using s2g_copy_atom_c = Copy_Atom<UniversalCopy<uint128_t>, T>;
     using S2GCopyC = decltype(
-        make_tiled_copy(s2g_copy_atom_c{}, make_layout(make_shape(_32{}, _4{}), make_stride(_4{}, _1{})), make_layout(_1{}, _4{}))
-    );
+        make_tiled_copy(
+            s2g_copy_atom_c{}, 
+            make_layout(make_shape(_32{}, _4{}), make_stride(_4{}, _1{})), 
+            make_layout(make_shape(_1{}, _8{}))
+        ));
 
     static constexpr int kThreadNum = size(TiledMMA{});
     static constexpr int shm_size_AB = cosize(SmemLayoutA{}) + cosize(SmemLayoutB{});
@@ -114,9 +120,9 @@ __global__ void hgemm(void* C_ptr, const void* A_ptr, const void* B_ptr, int M, 
     constexpr int kTileK = Config::kTileK;
     constexpr int kStage = Config::kStage;
 
-    Tensor a = make_tensor(make_gmem_ptr((T*)A_ptr), make_shape(Int<M>{}, Int<K>{}), make_stride(Int<K>{}, _1{}));
-    Tensor b = make_tensor(make_gmem_ptr((T*)B_ptr), make_shape(Int<N>{}, Int<K>{}), make_stride(Int<K>{}, _1{}));
-    Tensor c = make_tensor(make_gmem_ptr((T*)C_ptr), make_shape(Int<M>{}, Int<N>{}), make_stride(Int<N>{}, _1{}));
+    Tensor a = make_tensor(make_gmem_ptr((T*)A_ptr), make_shape(M, K), make_stride(K, _1{}));
+    Tensor b = make_tensor(make_gmem_ptr((T*)B_ptr), make_shape(N, K), make_stride(K, _1{}));
+    Tensor c = make_tensor(make_gmem_ptr((T*)C_ptr), make_shape(M, N), make_stride(N, _1{}));
 
     unsigned ix = blockIdx.x;
     unsigned iy = blockIdx.y;
@@ -177,7 +183,8 @@ __global__ void hgemm(void* C_ptr, const void* A_ptr, const void* B_ptr, int M, 
     int tile_to_read = 0;
     int smem_to_read = 0;
     int smem_to_write = 0;
-    for (int s = 0; s < kStage; ++s) {
+    #pragma unroll
+    for (int s = 0; s < kStage - 1; ++s) {
         copy(g2s_tiled_copy_a, tgra(_, _, _, s), tgra_smem(_, _, _, s));
         copy(g2s_tiled_copy_b, tgrb(_, _, _, s), tgrb_smem(_, _, _, s));
         cp_async_fence();
@@ -186,30 +193,33 @@ __global__ void hgemm(void* C_ptr, const void* A_ptr, const void* B_ptr, int M, 
         ++smem_to_write;
     }
 
-    cp_async_wait(kStage - 2);
+    cp_async_wait<kStage - 2>();
     __syncthreads();
 
     int ik = 0;
     copy(s2r_tiled_copy_a, tsra(_, _, ik, smem_to_read), tsra_reg(_, _, ik));
     copy(s2r_tiled_copy_b, tsrb(_, _, ik, smem_to_read), tsrb_reg(_, _, ik));
 
-    int k_tiles = K / kTileK;
+    // int k_tiles = K / kTileK;
+    int k_tiles = (K + kTileK - 1) / kTileK;
+    #pragma unroll
     for (int i_tile = 0; i_tile < k_tiles; ++i_tile) {
         int nk = size<2>(tra);
+        #pragma unroll
         for (int ik = 0; ik < nk; ++ik) {
             int ik_next = (ik + 1) % nk;
             if (ik == nk - 1) {
-                cp_async_wait(kStage - 2);
+                cp_async_wait<kStage - 2>();
                 __syncthreads();
 
                 smem_to_read = (smem_to_read + 1) % kStage;
             }
 
-            copy(s2r_tiled_copy_a, tsra(_, _, ik_next, smem_to_read), tsra_reg(_, _, ik));
-            copy(s2r_tiled_copy_b, tsrb(_, _, ik_next, smem_to_read), tsrb_reg(_, _, ik));
+            copy(s2r_tiled_copy_a, tsra(_, _, ik_next, smem_to_read), tsra_reg(_, _, ik_next));
+            copy(s2r_tiled_copy_b, tsrb(_, _, ik_next, smem_to_read), tsrb_reg(_, _, ik_next));
 
             if (ik == 0) {
-                if (tile_to_read < n_tile) {
+                if (tile_to_read < k_tiles) {
                     copy(g2s_tiled_copy_a, tgra(_, _, _, tile_to_read), tgra_smem(_, _, _, smem_to_write));
                     copy(g2s_tiled_copy_b, tgrb(_, _, _, tile_to_read), tgrb_smem(_, _, _, smem_to_write));
 
@@ -234,28 +244,28 @@ __global__ void hgemm(void* C_ptr, const void* A_ptr, const void* B_ptr, int M, 
     Tensor s2g_s = s2g_thr_copy_c.partition_S(sc);
     Tensor s2g_g = s2g_thr_copy_c.partition_D(gc);
 
-    auto r2s_sx = group_modes<1, 3>(r2s_s);
+    auto r2s_rx = group_modes<1, 3>(r2s_r);
     auto s2g_gx = group_modes<1, 3>(s2g_g);
 
-    int step = size<3>(r2s_r);
+    int step = size<3>(r2s_s);
     #pragma unroll
-    for (int i = 0; i < size<1>(tCrC_r2sx); i += step) {
+    for (int i = 0; i < size<1>(r2s_rx); i += step) {
     // reg -> shm
 #pragma unroll
     for (int j = 0; j < step; ++j) {
         // we add a temp tensor to cope with accumulator and output data type
         // difference
-        auto t = make_tensor_like<T>(tCrC_r2sx(_, i + j));
-        cute::copy(tCrC_r2sx(_, i + j), t);
+        auto t = make_tensor_like<T>(r2s_rx(_, i + j));
+        cute::copy(r2s_rx(_, i + j), t);
 
-        cute::copy(r2s_tiled_copy_c, t, tCsC_r2s(_, 0, 0, j));
+        cute::copy(r2s_copy_c, t, r2s_s(_, 0, 0, j));
     }
     __syncthreads();
 
 #pragma unroll
     // shm -> global
     for (int j = 0; j < step; ++j) {
-        cute::copy(s2g_tiled_copy_c, tCsC_s2g(_, 0, 0, j), tCgC_s2gx(_, i + j));
+        cute::copy(s2g_copy_c, s2g_s(_, 0, 0, j), s2g_gx(_, i + j));
     }
 
     __syncthreads();

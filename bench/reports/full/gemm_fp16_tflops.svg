@@ -1,0 +1,199 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1165" height="650" viewBox="0 0 1165 650">
+<title>gemm · fp16</title>
+<rect width="100%" height="100%" fill="#fff"/>
+<style>text{font-family:Arial,sans-serif;fill:#1e293b;font-size:12px}.title{font-size:21px;font-weight:600}.sub{fill:#64748b}</style>
+<text x="32" y="36" class="title">gemm · fp16</text>
+<text x="32" y="62" class="sub">TFLOPS; higher is better · log scale · only correctness-passing results · warm allocation reuse</text>
+<line x1="85" x2="1120" y1="470.0" y2="470.0" stroke="#e2e8f0"/>
+<text x="76" y="474.0" text-anchor="end">0.01</text>
+<line x1="85" x2="1120" y1="403.0" y2="403.0" stroke="#e2e8f0"/>
+<text x="76" y="407.0" text-anchor="end">0.1</text>
+<line x1="85" x2="1120" y1="336.0" y2="336.0" stroke="#e2e8f0"/>
+<text x="76" y="340.0" text-anchor="end">1</text>
+<line x1="85" x2="1120" y1="269.0" y2="269.0" stroke="#e2e8f0"/>
+<text x="76" y="273.0" text-anchor="end">10</text>
+<line x1="85" x2="1120" y1="202.0" y2="202.0" stroke="#e2e8f0"/>
+<text x="76" y="206.0" text-anchor="end">100</text>
+<line x1="85" x2="1120" y1="135.0" y2="135.0" stroke="#e2e8f0"/>
+<text x="76" y="139.0" text-anchor="end">1000</text>
+<text transform="translate(119.5,486) rotate(50)" text-anchor="start">16×16×32768</text>
+<text transform="translate(188.5,486) rotate(50)" text-anchor="start">32×64×16384</text>
+<text transform="translate(257.5,486) rotate(50)" text-anchor="start">64×64×4096</text>
+<text transform="translate(326.5,486) rotate(50)" text-anchor="start">64×128×8192</text>
+<text transform="translate(395.5,486) rotate(50)" text-anchor="start">128×128×4096</text>
+<text transform="translate(464.5,486) rotate(50)" text-anchor="start">128×256×16384</text>
+<text transform="translate(533.5,486) rotate(50)" text-anchor="start">256×256×256</text>
+<text transform="translate(602.5,486) rotate(50)" text-anchor="start">512×512×512</text>
+<text transform="translate(671.5,486) rotate(50)" text-anchor="start">1024×1024×1024</text>
+<text transform="translate(740.5,486) rotate(50)" text-anchor="start">2048×2048×2048</text>
+<text transform="translate(809.5,486) rotate(50)" text-anchor="start">4096×4096×4096</text>
+<text transform="translate(878.5,486) rotate(50)" text-anchor="start">128×4096×4096</text>
+<text transform="translate(947.5,486) rotate(50)" text-anchor="start">4096×128×4096</text>
+<text transform="translate(1016.5,486) rotate(50)" text-anchor="start">127×193×1001</text>
+<text transform="translate(1085.5,486) rotate(50)" text-anchor="start">65×129×40</text>
+<circle cx="35.0" cy="88" r="4" fill="#2563eb"/><text x="45.0" y="92">cublas</text>
+<circle cx="119.5" cy="300.4" r="4" fill="#2563eb"><title>cublas: 16×16×32768; tflops=3.4014; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="188.5" cy="260.7" r="4" fill="#2563eb"><title>cublas: 32×64×16384; tflops=13.312; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="257.5" cy="271.9" r="4" fill="#2563eb"><title>cublas: 64×64×4096; tflops=9.0457; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="326.5" cy="238.6" r="4" fill="#2563eb"><title>cublas: 64×128×8192; tflops=28.397; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="395.5" cy="237.8" r="4" fill="#2563eb"><title>cublas: 128×128×4096; tflops=29.237; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="464.5" cy="209.3" r="4" fill="#2563eb"><title>cublas: 128×256×16384; tflops=77.842; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="533.5" cy="255.0" r="4" fill="#2563eb"><title>cublas: 256×256×256; tflops=16.187; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="602.5" cy="216.2" r="4" fill="#2563eb"><title>cublas: 512×512×512; tflops=61.437; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="671.5" cy="198.5" r="4" fill="#2563eb"><title>cublas: 1024×1024×1024; tflops=112.97; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="740.5" cy="184.5" r="4" fill="#2563eb"><title>cublas: 2048×2048×2048; tflops=182.25; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="809.5" cy="183.8" r="4" fill="#2563eb"><title>cublas: 4096×4096×4096; tflops=187.14; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="878.5" cy="187.3" r="4" fill="#2563eb"><title>cublas: 128×4096×4096; tflops=165.53; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="947.5" cy="206.0" r="4" fill="#2563eb"><title>cublas: 4096×128×4096; tflops=87.117; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="1016.5" cy="265.8" r="4" fill="#2563eb"><title>cublas: 127×193×1001; tflops=11.165; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<circle cx="1085.5" cy="364.6" r="4" fill="#2563eb"><title>cublas: 65×129×40; tflops=0.37406; GemmEx,FP32_accumulate,default_math,FP32_reduction</title></circle>
+<line x1="119.5" y1="300.4" x2="188.5" y2="260.7" stroke="#2563eb" opacity="0.35"/>
+<line x1="188.5" y1="260.7" x2="257.5" y2="271.9" stroke="#2563eb" opacity="0.35"/>
+<line x1="257.5" y1="271.9" x2="326.5" y2="238.6" stroke="#2563eb" opacity="0.35"/>
+<line x1="326.5" y1="238.6" x2="395.5" y2="237.8" stroke="#2563eb" opacity="0.35"/>
+<line x1="395.5" y1="237.8" x2="464.5" y2="209.3" stroke="#2563eb" opacity="0.35"/>
+<line x1="464.5" y1="209.3" x2="533.5" y2="255.0" stroke="#2563eb" opacity="0.35"/>
+<line x1="533.5" y1="255.0" x2="602.5" y2="216.2" stroke="#2563eb" opacity="0.35"/>
+<line x1="602.5" y1="216.2" x2="671.5" y2="198.5" stroke="#2563eb" opacity="0.35"/>
+<line x1="671.5" y1="198.5" x2="740.5" y2="184.5" stroke="#2563eb" opacity="0.35"/>
+<line x1="740.5" y1="184.5" x2="809.5" y2="183.8" stroke="#2563eb" opacity="0.35"/>
+<line x1="809.5" y1="183.8" x2="878.5" y2="187.3" stroke="#2563eb" opacity="0.35"/>
+<line x1="878.5" y1="187.3" x2="947.5" y2="206.0" stroke="#2563eb" opacity="0.35"/>
+<line x1="947.5" y1="206.0" x2="1016.5" y2="265.8" stroke="#2563eb" opacity="0.35"/>
+<line x1="1016.5" y1="265.8" x2="1085.5" y2="364.6" stroke="#2563eb" opacity="0.35"/>
+<circle cx="308.75" cy="88" r="4" fill="#dc2626"/><text x="318.75" y="92">cublaslt</text>
+<circle cx="119.5" cy="300.2" r="4" fill="#dc2626"><title>cublaslt: 16×16×32768; tflops=3.4267; algorithm=21,split_k=43,heuristic_candidates=3,required_workspace=44032</title></circle>
+<circle cx="188.5" cy="259.6" r="4" fill="#dc2626"><title>cublaslt: 32×64×16384; tflops=13.821; algorithm=21,split_k=24,heuristic_candidates=4,required_workspace=98304</title></circle>
+<circle cx="257.5" cy="268.9" r="4" fill="#dc2626"><title>cublaslt: 64×64×4096; tflops=10.04; algorithm=21,split_k=42,heuristic_candidates=5,required_workspace=262144</title></circle>
+<circle cx="326.5" cy="237.6" r="4" fill="#dc2626"><title>cublaslt: 64×128×8192; tflops=29.401; algorithm=21,split_k=24,heuristic_candidates=4,required_workspace=360448</title></circle>
+<circle cx="395.5" cy="236.0" r="4" fill="#dc2626"><title>cublaslt: 128×128×4096; tflops=31.046; algorithm=21,split_k=42,heuristic_candidates=5,required_workspace=2097152</title></circle>
+<circle cx="464.5" cy="197.7" r="4" fill="#dc2626"><title>cublaslt: 128×256×16384; tflops=115.73; algorithm=21,split_k=21,heuristic_candidates=4,required_workspace=2621440</title></circle>
+<circle cx="533.5" cy="255.0" r="4" fill="#dc2626"><title>cublaslt: 256×256×256; tflops=16.167; algorithm=21,split_k=1,heuristic_candidates=6,required_workspace=0</title></circle>
+<circle cx="602.5" cy="216.2" r="4" fill="#dc2626"><title>cublaslt: 512×512×512; tflops=61.473; algorithm=21,split_k=1,heuristic_candidates=6,required_workspace=0</title></circle>
+<circle cx="671.5" cy="196.9" r="4" fill="#dc2626"><title>cublaslt: 1024×1024×1024; tflops=119.15; algorithm=21,split_k=2,heuristic_candidates=2,required_workspace=4194304</title></circle>
+<circle cx="740.5" cy="184.6" r="4" fill="#dc2626"><title>cublaslt: 2048×2048×2048; tflops=181.59; algorithm=21,split_k=1,heuristic_candidates=1,required_workspace=0</title></circle>
+<circle cx="809.5" cy="180.7" r="4" fill="#dc2626"><title>cublaslt: 4096×4096×4096; tflops=207.71; algorithm=21,split_k=1,heuristic_candidates=3,required_workspace=0</title></circle>
+<circle cx="878.5" cy="185.5" r="4" fill="#dc2626"><title>cublaslt: 128×4096×4096; tflops=176.38; algorithm=21,split_k=5,heuristic_candidates=2,required_workspace=5242880</title></circle>
+<circle cx="947.5" cy="191.0" r="4" fill="#dc2626"><title>cublaslt: 4096×128×4096; tflops=145.76; algorithm=21,split_k=10,heuristic_candidates=2,required_workspace=10485760</title></circle>
+<circle cx="1016.5" cy="261.5" r="4" fill="#dc2626"><title>cublaslt: 127×193×1001; tflops=12.958; algorithm=24,split_k=8,heuristic_candidates=8,required_workspace=392176</title></circle>
+<circle cx="1085.5" cy="360.0" r="4" fill="#dc2626"><title>cublaslt: 65×129×40; tflops=0.438; algorithm=24,split_k=1,heuristic_candidates=8,required_workspace=0</title></circle>
+<line x1="119.5" y1="300.2" x2="188.5" y2="259.6" stroke="#dc2626" opacity="0.35"/>
+<line x1="188.5" y1="259.6" x2="257.5" y2="268.9" stroke="#dc2626" opacity="0.35"/>
+<line x1="257.5" y1="268.9" x2="326.5" y2="237.6" stroke="#dc2626" opacity="0.35"/>
+<line x1="326.5" y1="237.6" x2="395.5" y2="236.0" stroke="#dc2626" opacity="0.35"/>
+<line x1="395.5" y1="236.0" x2="464.5" y2="197.7" stroke="#dc2626" opacity="0.35"/>
+<line x1="464.5" y1="197.7" x2="533.5" y2="255.0" stroke="#dc2626" opacity="0.35"/>
+<line x1="533.5" y1="255.0" x2="602.5" y2="216.2" stroke="#dc2626" opacity="0.35"/>
+<line x1="602.5" y1="216.2" x2="671.5" y2="196.9" stroke="#dc2626" opacity="0.35"/>
+<line x1="671.5" y1="196.9" x2="740.5" y2="184.6" stroke="#dc2626" opacity="0.35"/>
+<line x1="740.5" y1="184.6" x2="809.5" y2="180.7" stroke="#dc2626" opacity="0.35"/>
+<line x1="809.5" y1="180.7" x2="878.5" y2="185.5" stroke="#dc2626" opacity="0.35"/>
+<line x1="878.5" y1="185.5" x2="947.5" y2="191.0" stroke="#dc2626" opacity="0.35"/>
+<line x1="947.5" y1="191.0" x2="1016.5" y2="261.5" stroke="#dc2626" opacity="0.35"/>
+<line x1="1016.5" y1="261.5" x2="1085.5" y2="360.0" stroke="#dc2626" opacity="0.35"/>
+<circle cx="582.5" cy="88" r="4" fill="#059669"/><text x="592.5" y="92">cutlass_sm80</text>
+<circle cx="119.5" cy="444.8" r="4" fill="#059669"><title>cutlass_sm80: 16×16×32768; tflops=0.023807; tile=128x128x32,stages=3,FP32_accumulate,fixed_configuration</title></circle>
+<circle cx="188.5" cy="384.4" r="4" fill="#059669"><title>cutlass_sm80: 32×64×16384; tflops=0.18932; tile=128x128x32,stages=3,FP32_accumulate,fixed_configuration</title></circle>
+<circle cx="257.5" cy="364.7" r="4" fill="#059669"><title>cutlass_sm80: 64×64×4096; tflops=0.37271; tile=128x128x32,stages=3,FP32_accumulate,fixed_configuration</title></circle>
+<circle cx="326.5" cy="344.3" r="4" fill="#059669"><title>cutlass_sm80: 64×128×8192; tflops=0.75278; tile=128x128x32,stages=3,FP32_accumulate,fixed_configuration</title></circle>
+<circle cx="395.5" cy="324.5" r="4" fill="#059669"><title>cutlass_sm80: 128×128×4096; tflops=1.4869; tile=128x128x32,stages=3,FP32_accumulate,fixed_configuration</title></circle>
+<circle cx="464.5" cy="303.8" r="4" fill="#059669"><title>cutlass_sm80: 128×256×16384; tflops=3.0246; tile=128x128x32,stages=3,FP32_accumulate,fixed_configuration</title></circle>
+<circle cx="533.5" cy="292.5" r="4" fill="#059669"><title>cutlass_sm80: 256×256×256; tflops=4.4628; tile=128x128x32,stages=3,FP32_accumulate,fixed_configuration</title></circle>
+<circle cx="602.5" cy="248.1" r="4" fill="#059669"><title>cutlass_sm80: 512×512×512; tflops=20.516; tile=128x128x32,stages=3,FP32_accumulate,fixed_configuration</title></circle>
+<circle cx="671.5" cy="205.4" r="4" fill="#059669"><title>cutlass_sm80: 1024×1024×1024; tflops=89.07; tile=128x128x32,stages=3,FP32_accumulate,fixed_configuration</title></circle>
+<circle cx="740.5" cy="183.7" r="4" fill="#059669"><title>cutlass_sm80: 2048×2048×2048; tflops=187.25; tile=128x128x32,stages=3,FP32_accumulate,fixed_configuration</title></circle>
+<circle cx="809.5" cy="180.2" r="4" fill="#059669"><title>cutlass_sm80: 4096×4096×4096; tflops=211.37; tile=128x128x32,stages=3,FP32_accumulate,fixed_configuration</title></circle>
+<circle cx="878.5" cy="223.7" r="4" fill="#059669"><title>cutlass_sm80: 128×4096×4096; tflops=47.356; tile=128x128x32,stages=3,FP32_accumulate,fixed_configuration</title></circle>
+<circle cx="947.5" cy="223.7" r="4" fill="#059669"><title>cutlass_sm80: 4096×128×4096; tflops=47.357; tile=128x128x32,stages=3,FP32_accumulate,fixed_configuration</title></circle>
+<line x1="119.5" y1="444.8" x2="188.5" y2="384.4" stroke="#059669" opacity="0.35"/>
+<line x1="188.5" y1="384.4" x2="257.5" y2="364.7" stroke="#059669" opacity="0.35"/>
+<line x1="257.5" y1="364.7" x2="326.5" y2="344.3" stroke="#059669" opacity="0.35"/>
+<line x1="326.5" y1="344.3" x2="395.5" y2="324.5" stroke="#059669" opacity="0.35"/>
+<line x1="395.5" y1="324.5" x2="464.5" y2="303.8" stroke="#059669" opacity="0.35"/>
+<line x1="464.5" y1="303.8" x2="533.5" y2="292.5" stroke="#059669" opacity="0.35"/>
+<line x1="533.5" y1="292.5" x2="602.5" y2="248.1" stroke="#059669" opacity="0.35"/>
+<line x1="602.5" y1="248.1" x2="671.5" y2="205.4" stroke="#059669" opacity="0.35"/>
+<line x1="671.5" y1="205.4" x2="740.5" y2="183.7" stroke="#059669" opacity="0.35"/>
+<line x1="740.5" y1="183.7" x2="809.5" y2="180.2" stroke="#059669" opacity="0.35"/>
+<line x1="809.5" y1="180.2" x2="878.5" y2="223.7" stroke="#059669" opacity="0.35"/>
+<line x1="878.5" y1="223.7" x2="947.5" y2="223.7" stroke="#059669" opacity="0.35"/>
+<circle cx="856.25" cy="88" r="4" fill="#9333ea"/><text x="866.25" y="92">hgemm_splitk</text>
+<circle cx="119.5" cy="337.8" r="4" fill="#9333ea"><title>hgemm_splitk: 16×16×32768; tflops=0.93861; tile=64x64x32,stages=3,splits=32</title></circle>
+<circle cx="188.5" cy="282.3" r="4" fill="#9333ea"><title>hgemm_splitk: 32×64×16384; tflops=6.3373; tile=64x64x32,stages=3,splits=32</title></circle>
+<circle cx="257.5" cy="281.2" r="4" fill="#9333ea"><title>hgemm_splitk: 64×64×4096; tflops=6.5774; tile=64x64x32,stages=3,splits=32</title></circle>
+<circle cx="326.5" cy="250.0" r="4" fill="#9333ea"><title>hgemm_splitk: 64×128×8192; tflops=19.198; tile=64x64x32,stages=3,splits=32</title></circle>
+<circle cx="395.5" cy="242.0" r="4" fill="#9333ea"><title>hgemm_splitk: 128×128×4096; tflops=25.294; tile=64x64x32,stages=3,splits=32</title></circle>
+<circle cx="464.5" cy="206.2" r="4" fill="#9333ea"><title>hgemm_splitk: 128×256×16384; tflops=86.521; tile=64x64x32,stages=3,splits=32</title></circle>
+<circle cx="533.5" cy="271.3" r="4" fill="#9333ea"><title>hgemm_splitk: 256×256×256; tflops=9.2402; tile=64x64x32,stages=3,splits=8</title></circle>
+<circle cx="602.5" cy="227.4" r="4" fill="#9333ea"><title>hgemm_splitk: 512×512×512; tflops=41.813; tile=64x64x32,stages=3,splits=4</title></circle>
+<circle cx="671.5" cy="201.3" r="4" fill="#9333ea"><title>hgemm_splitk: 1024×1024×1024; tflops=102.27; tile=64x64x32,stages=3,splits=1</title></circle>
+<circle cx="740.5" cy="189.0" r="4" fill="#9333ea"><title>hgemm_splitk: 2048×2048×2048; tflops=156.39; tile=64x64x32,stages=3,splits=1</title></circle>
+<circle cx="809.5" cy="186.8" r="4" fill="#9333ea"><title>hgemm_splitk: 4096×4096×4096; tflops=168.51; tile=64x64x32,stages=3,splits=1</title></circle>
+<circle cx="878.5" cy="194.8" r="4" fill="#9333ea"><title>hgemm_splitk: 128×4096×4096; tflops=128.09; tile=64x64x32,stages=3,splits=8</title></circle>
+<circle cx="947.5" cy="195.0" r="4" fill="#9333ea"><title>hgemm_splitk: 4096×128×4096; tflops=127.38; tile=64x64x32,stages=3,splits=8</title></circle>
+<circle cx="1016.5" cy="284.5" r="4" fill="#9333ea"><title>hgemm_splitk: 127×193×1001; tflops=5.8614; tile=64x64x32,stages=3,splits=16</title></circle>
+<circle cx="1085.5" cy="384.8" r="4" fill="#9333ea"><title>hgemm_splitk: 65×129×40; tflops=0.187; tile=64x64x32,stages=3,splits=2</title></circle>
+<line x1="119.5" y1="337.8" x2="188.5" y2="282.3" stroke="#9333ea" opacity="0.35"/>
+<line x1="188.5" y1="282.3" x2="257.5" y2="281.2" stroke="#9333ea" opacity="0.35"/>
+<line x1="257.5" y1="281.2" x2="326.5" y2="250.0" stroke="#9333ea" opacity="0.35"/>
+<line x1="326.5" y1="250.0" x2="395.5" y2="242.0" stroke="#9333ea" opacity="0.35"/>
+<line x1="395.5" y1="242.0" x2="464.5" y2="206.2" stroke="#9333ea" opacity="0.35"/>
+<line x1="464.5" y1="206.2" x2="533.5" y2="271.3" stroke="#9333ea" opacity="0.35"/>
+<line x1="533.5" y1="271.3" x2="602.5" y2="227.4" stroke="#9333ea" opacity="0.35"/>
+<line x1="602.5" y1="227.4" x2="671.5" y2="201.3" stroke="#9333ea" opacity="0.35"/>
+<line x1="671.5" y1="201.3" x2="740.5" y2="189.0" stroke="#9333ea" opacity="0.35"/>
+<line x1="740.5" y1="189.0" x2="809.5" y2="186.8" stroke="#9333ea" opacity="0.35"/>
+<line x1="809.5" y1="186.8" x2="878.5" y2="194.8" stroke="#9333ea" opacity="0.35"/>
+<line x1="878.5" y1="194.8" x2="947.5" y2="195.0" stroke="#9333ea" opacity="0.35"/>
+<line x1="947.5" y1="195.0" x2="1016.5" y2="284.5" stroke="#9333ea" opacity="0.35"/>
+<line x1="1016.5" y1="284.5" x2="1085.5" y2="384.8" stroke="#9333ea" opacity="0.35"/>
+<circle cx="35.0" cy="108" r="4" fill="#d97706"/><text x="45.0" y="112">hgemm_splitk_s1</text>
+<circle cx="119.5" cy="433.7" r="4" fill="#d97706"><title>hgemm_splitk_s1: 16×16×32768; tflops=0.034876; splits=1</title></circle>
+<circle cx="188.5" cy="373.4" r="4" fill="#d97706"><title>hgemm_splitk_s1: 32×64×16384; tflops=0.27613; splits=1</title></circle>
+<circle cx="257.5" cy="354.2" r="4" fill="#d97706"><title>hgemm_splitk_s1: 64×64×4096; tflops=0.5352; splits=1</title></circle>
+<circle cx="326.5" cy="333.7" r="4" fill="#d97706"><title>hgemm_splitk_s1: 64×128×8192; tflops=1.084; splits=1</title></circle>
+<circle cx="395.5" cy="314.0" r="4" fill="#d97706"><title>hgemm_splitk_s1: 128×128×4096; tflops=2.128; splits=1</title></circle>
+<circle cx="464.5" cy="293.0" r="4" fill="#d97706"><title>hgemm_splitk_s1: 128×256×16384; tflops=4.3893; splits=1</title></circle>
+<circle cx="533.5" cy="288.6" r="4" fill="#d97706"><title>hgemm_splitk_s1: 256×256×256; tflops=5.1011; splits=1</title></circle>
+<circle cx="602.5" cy="241.4" r="4" fill="#d97706"><title>hgemm_splitk_s1: 512×512×512; tflops=25.84; splits=1</title></circle>
+<circle cx="671.5" cy="201.4" r="4" fill="#d97706"><title>hgemm_splitk_s1: 1024×1024×1024; tflops=102.11; splits=1</title></circle>
+<circle cx="740.5" cy="189.1" r="4" fill="#d97706"><title>hgemm_splitk_s1: 2048×2048×2048; tflops=155.81; splits=1</title></circle>
+<circle cx="809.5" cy="186.8" r="4" fill="#d97706"><title>hgemm_splitk_s1: 4096×4096×4096; tflops=168.4; splits=1</title></circle>
+<circle cx="878.5" cy="213.7" r="4" fill="#d97706"><title>hgemm_splitk_s1: 128×4096×4096; tflops=66.873; splits=1</title></circle>
+<circle cx="947.5" cy="213.7" r="4" fill="#d97706"><title>hgemm_splitk_s1: 4096×128×4096; tflops=66.848; splits=1</title></circle>
+<circle cx="1016.5" cy="363.6" r="4" fill="#d97706"><title>hgemm_splitk_s1: 127×193×1001; tflops=0.38741; splits=1</title></circle>
+<circle cx="1085.5" cy="388.5" r="4" fill="#d97706"><title>hgemm_splitk_s1: 65×129×40; tflops=0.1648; splits=1</title></circle>
+<line x1="119.5" y1="433.7" x2="188.5" y2="373.4" stroke="#d97706" opacity="0.35"/>
+<line x1="188.5" y1="373.4" x2="257.5" y2="354.2" stroke="#d97706" opacity="0.35"/>
+<line x1="257.5" y1="354.2" x2="326.5" y2="333.7" stroke="#d97706" opacity="0.35"/>
+<line x1="326.5" y1="333.7" x2="395.5" y2="314.0" stroke="#d97706" opacity="0.35"/>
+<line x1="395.5" y1="314.0" x2="464.5" y2="293.0" stroke="#d97706" opacity="0.35"/>
+<line x1="464.5" y1="293.0" x2="533.5" y2="288.6" stroke="#d97706" opacity="0.35"/>
+<line x1="533.5" y1="288.6" x2="602.5" y2="241.4" stroke="#d97706" opacity="0.35"/>
+<line x1="602.5" y1="241.4" x2="671.5" y2="201.4" stroke="#d97706" opacity="0.35"/>
+<line x1="671.5" y1="201.4" x2="740.5" y2="189.1" stroke="#d97706" opacity="0.35"/>
+<line x1="740.5" y1="189.1" x2="809.5" y2="186.8" stroke="#d97706" opacity="0.35"/>
+<line x1="809.5" y1="186.8" x2="878.5" y2="213.7" stroke="#d97706" opacity="0.35"/>
+<line x1="878.5" y1="213.7" x2="947.5" y2="213.7" stroke="#d97706" opacity="0.35"/>
+<line x1="947.5" y1="213.7" x2="1016.5" y2="363.6" stroke="#d97706" opacity="0.35"/>
+<line x1="1016.5" y1="363.6" x2="1085.5" y2="388.5" stroke="#d97706" opacity="0.35"/>
+<circle cx="308.75" cy="108" r="4" fill="#0891b2"/><text x="318.75" y="112">original_hgemm</text>
+<circle cx="395.5" cy="324.4" r="4" fill="#0891b2"><title>original_hgemm: 128×128×4096; tflops=1.4921; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="464.5" cy="303.8" r="4" fill="#0891b2"><title>original_hgemm: 128×256×16384; tflops=3.0263; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="533.5" cy="291.8" r="4" fill="#0891b2"><title>original_hgemm: 256×256×256; tflops=4.5642; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="602.5" cy="247.9" r="4" fill="#0891b2"><title>original_hgemm: 512×512×512; tflops=20.636; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="671.5" cy="205.4" r="4" fill="#0891b2"><title>original_hgemm: 1024×1024×1024; tflops=89.087; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="740.5" cy="184.4" r="4" fill="#0891b2"><title>original_hgemm: 2048×2048×2048; tflops=183.24; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="809.5" cy="180.3" r="4" fill="#0891b2"><title>original_hgemm: 4096×4096×4096; tflops=210.73; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="878.5" cy="223.8" r="4" fill="#0891b2"><title>original_hgemm: 128×4096×4096; tflops=47.341; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="947.5" cy="223.8" r="4" fill="#0891b2"><title>original_hgemm: 4096×128×4096; tflops=47.342; unchanged_original,FP16_accumulate</title></circle>
+<line x1="395.5" y1="324.4" x2="464.5" y2="303.8" stroke="#0891b2" opacity="0.35"/>
+<line x1="464.5" y1="303.8" x2="533.5" y2="291.8" stroke="#0891b2" opacity="0.35"/>
+<line x1="533.5" y1="291.8" x2="602.5" y2="247.9" stroke="#0891b2" opacity="0.35"/>
+<line x1="602.5" y1="247.9" x2="671.5" y2="205.4" stroke="#0891b2" opacity="0.35"/>
+<line x1="671.5" y1="205.4" x2="740.5" y2="184.4" stroke="#0891b2" opacity="0.35"/>
+<line x1="740.5" y1="184.4" x2="809.5" y2="180.3" stroke="#0891b2" opacity="0.35"/>
+<line x1="809.5" y1="180.3" x2="878.5" y2="223.8" stroke="#0891b2" opacity="0.35"/>
+<line x1="878.5" y1="223.8" x2="947.5" y2="223.8" stroke="#0891b2" opacity="0.35"/>
+<text x="32" y="625" class="sub">Shapes are categorical. Latency whiskers: minimum–p95. Speedup baseline: fastest valid industrial provider per shape.</text>
+</svg>

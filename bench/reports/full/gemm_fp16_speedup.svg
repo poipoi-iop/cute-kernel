@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1165" height="650" viewBox="0 0 1165 650">
+<title>gemm · fp16 · speedup</title>
+<rect width="100%" height="100%" fill="#fff"/>
+<style>text{font-family:Arial,sans-serif;fill:#1e293b;font-size:12px}.title{font-size:21px;font-weight:600}.sub{fill:#64748b}</style>
+<text x="32" y="36" class="title">gemm · fp16 · speedup</text>
+<text x="32" y="62" class="sub">Speedup vs fastest measured industrial baseline · log scale · only correctness-passing results · warm allocation reuse</text>
+<line x1="85" x2="1120" y1="470.0" y2="470.0" stroke="#e2e8f0"/>
+<text x="76" y="474.0" text-anchor="end">0.01</text>
+<line x1="85" x2="1120" y1="358.3" y2="358.3" stroke="#e2e8f0"/>
+<text x="76" y="362.3" text-anchor="end">0.1</text>
+<line x1="85" x2="1120" y1="246.7" y2="246.7" stroke="#e2e8f0"/>
+<text x="76" y="250.7" text-anchor="end">1</text>
+<line x1="85" x2="1120" y1="135.0" y2="135.0" stroke="#e2e8f0"/>
+<text x="76" y="139.0" text-anchor="end">10</text>
+<text transform="translate(119.5,486) rotate(50)" text-anchor="start">16×16×32768</text>
+<text transform="translate(188.5,486) rotate(50)" text-anchor="start">32×64×16384</text>
+<text transform="translate(257.5,486) rotate(50)" text-anchor="start">64×64×4096</text>
+<text transform="translate(326.5,486) rotate(50)" text-anchor="start">64×128×8192</text>
+<text transform="translate(395.5,486) rotate(50)" text-anchor="start">128×128×4096</text>
+<text transform="translate(464.5,486) rotate(50)" text-anchor="start">128×256×16384</text>
+<text transform="translate(533.5,486) rotate(50)" text-anchor="start">256×256×256</text>
+<text transform="translate(602.5,486) rotate(50)" text-anchor="start">512×512×512</text>
+<text transform="translate(671.5,486) rotate(50)" text-anchor="start">1024×1024×1024</text>
+<text transform="translate(740.5,486) rotate(50)" text-anchor="start">2048×2048×2048</text>
+<text transform="translate(809.5,486) rotate(50)" text-anchor="start">4096×4096×4096</text>
+<text transform="translate(878.5,486) rotate(50)" text-anchor="start">128×4096×4096</text>
+<text transform="translate(947.5,486) rotate(50)" text-anchor="start">4096×128×4096</text>
+<text transform="translate(1016.5,486) rotate(50)" text-anchor="start">127×193×1001</text>
+<text transform="translate(1085.5,486) rotate(50)" text-anchor="start">65×129×40</text>
+<circle cx="35.0" cy="88" r="4" fill="#2563eb"/><text x="45.0" y="92">hgemm_splitk</text>
+<circle cx="119.5" cy="309.5" r="4" fill="#2563eb"><title>hgemm_splitk: 16×16×32768; speedup=0.27391; tile=64x64x32,stages=3,splits=32</title></circle>
+<circle cx="188.5" cy="284.5" r="4" fill="#2563eb"><title>hgemm_splitk: 32×64×16384; speedup=0.45854; tile=64x64x32,stages=3,splits=32</title></circle>
+<circle cx="257.5" cy="267.2" r="4" fill="#2563eb"><title>hgemm_splitk: 64×64×4096; speedup=0.65512; tile=64x64x32,stages=3,splits=32</title></circle>
+<circle cx="326.5" cy="267.3" r="4" fill="#2563eb"><title>hgemm_splitk: 64×128×8192; speedup=0.65297; tile=64x64x32,stages=3,splits=32</title></circle>
+<circle cx="395.5" cy="256.6" r="4" fill="#2563eb"><title>hgemm_splitk: 128×128×4096; speedup=0.81474; tile=64x64x32,stages=3,splits=32</title></circle>
+<circle cx="464.5" cy="260.8" r="4" fill="#2563eb"><title>hgemm_splitk: 128×256×16384; speedup=0.74761; tile=64x64x32,stages=3,splits=32</title></circle>
+<circle cx="533.5" cy="273.9" r="4" fill="#2563eb"><title>hgemm_splitk: 256×256×256; speedup=0.57085; tile=64x64x32,stages=3,splits=8</title></circle>
+<circle cx="602.5" cy="265.4" r="4" fill="#2563eb"><title>hgemm_splitk: 512×512×512; speedup=0.68019; tile=64x64x32,stages=3,splits=4</title></circle>
+<circle cx="671.5" cy="254.1" r="4" fill="#2563eb"><title>hgemm_splitk: 1024×1024×1024; speedup=0.85836; tile=64x64x32,stages=3,splits=1</title></circle>
+<circle cx="740.5" cy="255.4" r="4" fill="#2563eb"><title>hgemm_splitk: 2048×2048×2048; speedup=0.83522; tile=64x64x32,stages=3,splits=1</title></circle>
+<circle cx="809.5" cy="257.7" r="4" fill="#2563eb"><title>hgemm_splitk: 4096×4096×4096; speedup=0.79725; tile=64x64x32,stages=3,splits=1</title></circle>
+<circle cx="878.5" cy="262.2" r="4" fill="#2563eb"><title>hgemm_splitk: 128×4096×4096; speedup=0.7262; tile=64x64x32,stages=3,splits=8</title></circle>
+<circle cx="947.5" cy="253.2" r="4" fill="#2563eb"><title>hgemm_splitk: 4096×128×4096; speedup=0.87388; tile=64x64x32,stages=3,splits=8</title></circle>
+<circle cx="1016.5" cy="285.1" r="4" fill="#2563eb"><title>hgemm_splitk: 127×193×1001; speedup=0.45234; tile=64x64x32,stages=3,splits=16</title></circle>
+<circle cx="1085.5" cy="287.9" r="4" fill="#2563eb"><title>hgemm_splitk: 65×129×40; speedup=0.42694; tile=64x64x32,stages=3,splits=2</title></circle>
+<line x1="119.5" y1="309.5" x2="188.5" y2="284.5" stroke="#2563eb" opacity="0.35"/>
+<line x1="188.5" y1="284.5" x2="257.5" y2="267.2" stroke="#2563eb" opacity="0.35"/>
+<line x1="257.5" y1="267.2" x2="326.5" y2="267.3" stroke="#2563eb" opacity="0.35"/>
+<line x1="326.5" y1="267.3" x2="395.5" y2="256.6" stroke="#2563eb" opacity="0.35"/>
+<line x1="395.5" y1="256.6" x2="464.5" y2="260.8" stroke="#2563eb" opacity="0.35"/>
+<line x1="464.5" y1="260.8" x2="533.5" y2="273.9" stroke="#2563eb" opacity="0.35"/>
+<line x1="533.5" y1="273.9" x2="602.5" y2="265.4" stroke="#2563eb" opacity="0.35"/>
+<line x1="602.5" y1="265.4" x2="671.5" y2="254.1" stroke="#2563eb" opacity="0.35"/>
+<line x1="671.5" y1="254.1" x2="740.5" y2="255.4" stroke="#2563eb" opacity="0.35"/>
+<line x1="740.5" y1="255.4" x2="809.5" y2="257.7" stroke="#2563eb" opacity="0.35"/>
+<line x1="809.5" y1="257.7" x2="878.5" y2="262.2" stroke="#2563eb" opacity="0.35"/>
+<line x1="878.5" y1="262.2" x2="947.5" y2="253.2" stroke="#2563eb" opacity="0.35"/>
+<line x1="947.5" y1="253.2" x2="1016.5" y2="285.1" stroke="#2563eb" opacity="0.35"/>
+<line x1="1016.5" y1="285.1" x2="1085.5" y2="287.9" stroke="#2563eb" opacity="0.35"/>
+<circle cx="308.75" cy="88" r="4" fill="#dc2626"/><text x="318.75" y="92">hgemm_splitk_s1</text>
+<circle cx="119.5" cy="469.1" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 16×16×32768; speedup=0.010178; splits=1</title></circle>
+<circle cx="188.5" cy="436.4" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 32×64×16384; speedup=0.019979; splits=1</title></circle>
+<circle cx="257.5" cy="388.8" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 64×64×4096; speedup=0.053307; splits=1</title></circle>
+<circle cx="326.5" cy="406.7" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 64×128×8192; speedup=0.036868; splits=1</title></circle>
+<circle cx="395.5" cy="376.6" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 128×128×4096; speedup=0.068545; splits=1</title></circle>
+<circle cx="464.5" cy="405.4" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 128×256×16384; speedup=0.037927; splits=1</title></circle>
+<circle cx="533.5" cy="302.7" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 256×256×256; speedup=0.31514; splits=1</title></circle>
+<circle cx="602.5" cy="288.7" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 512×512×512; speedup=0.42034; splits=1</title></circle>
+<circle cx="671.5" cy="254.1" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 1024×1024×1024; speedup=0.85703; splits=1</title></circle>
+<circle cx="740.5" cy="255.6" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 2048×2048×2048; speedup=0.8321; splits=1</title></circle>
+<circle cx="809.5" cy="257.7" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 4096×4096×4096; speedup=0.79672; splits=1</title></circle>
+<circle cx="878.5" cy="293.7" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 128×4096×4096; speedup=0.37913; splits=1</title></circle>
+<circle cx="947.5" cy="284.5" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 4096×128×4096; speedup=0.45862; splits=1</title></circle>
+<circle cx="1016.5" cy="416.9" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 127×193×1001; speedup=0.029897; splits=1</title></circle>
+<circle cx="1085.5" cy="294.1" r="4" fill="#dc2626"><title>hgemm_splitk_s1: 65×129×40; speedup=0.37626; splits=1</title></circle>
+<line x1="119.5" y1="469.1" x2="188.5" y2="436.4" stroke="#dc2626" opacity="0.35"/>
+<line x1="188.5" y1="436.4" x2="257.5" y2="388.8" stroke="#dc2626" opacity="0.35"/>
+<line x1="257.5" y1="388.8" x2="326.5" y2="406.7" stroke="#dc2626" opacity="0.35"/>
+<line x1="326.5" y1="406.7" x2="395.5" y2="376.6" stroke="#dc2626" opacity="0.35"/>
+<line x1="395.5" y1="376.6" x2="464.5" y2="405.4" stroke="#dc2626" opacity="0.35"/>
+<line x1="464.5" y1="405.4" x2="533.5" y2="302.7" stroke="#dc2626" opacity="0.35"/>
+<line x1="533.5" y1="302.7" x2="602.5" y2="288.7" stroke="#dc2626" opacity="0.35"/>
+<line x1="602.5" y1="288.7" x2="671.5" y2="254.1" stroke="#dc2626" opacity="0.35"/>
+<line x1="671.5" y1="254.1" x2="740.5" y2="255.6" stroke="#dc2626" opacity="0.35"/>
+<line x1="740.5" y1="255.6" x2="809.5" y2="257.7" stroke="#dc2626" opacity="0.35"/>
+<line x1="809.5" y1="257.7" x2="878.5" y2="293.7" stroke="#dc2626" opacity="0.35"/>
+<line x1="878.5" y1="293.7" x2="947.5" y2="284.5" stroke="#dc2626" opacity="0.35"/>
+<line x1="947.5" y1="284.5" x2="1016.5" y2="416.9" stroke="#dc2626" opacity="0.35"/>
+<line x1="1016.5" y1="416.9" x2="1085.5" y2="294.1" stroke="#dc2626" opacity="0.35"/>
+<circle cx="582.5" cy="88" r="4" fill="#059669"/><text x="592.5" y="92">original_hgemm</text>
+<circle cx="395.5" cy="393.9" r="4" fill="#059669"><title>original_hgemm: 128×128×4096; speedup=0.048061; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="464.5" cy="423.4" r="4" fill="#059669"><title>original_hgemm: 128×256×16384; speedup=0.02615; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="533.5" cy="308.1" r="4" fill="#059669"><title>original_hgemm: 256×256×256; speedup=0.28197; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="602.5" cy="299.6" r="4" fill="#059669"><title>original_hgemm: 512×512×512; speedup=0.33569; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="671.5" cy="260.8" r="4" fill="#059669"><title>original_hgemm: 1024×1024×1024; speedup=0.7477; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="740.5" cy="247.7" r="4" fill="#059669"><title>original_hgemm: 2048×2048×2048; speedup=0.9786; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="809.5" cy="246.8" r="4" fill="#059669"><title>original_hgemm: 4096×4096×4096; speedup=0.99699; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="878.5" cy="310.5" r="4" fill="#059669"><title>original_hgemm: 128×4096×4096; speedup=0.2684; unchanged_original,FP16_accumulate</title></circle>
+<circle cx="947.5" cy="301.2" r="4" fill="#059669"><title>original_hgemm: 4096×128×4096; speedup=0.3248; unchanged_original,FP16_accumulate</title></circle>
+<line x1="395.5" y1="393.9" x2="464.5" y2="423.4" stroke="#059669" opacity="0.35"/>
+<line x1="464.5" y1="423.4" x2="533.5" y2="308.1" stroke="#059669" opacity="0.35"/>
+<line x1="533.5" y1="308.1" x2="602.5" y2="299.6" stroke="#059669" opacity="0.35"/>
+<line x1="602.5" y1="299.6" x2="671.5" y2="260.8" stroke="#059669" opacity="0.35"/>
+<line x1="671.5" y1="260.8" x2="740.5" y2="247.7" stroke="#059669" opacity="0.35"/>
+<line x1="740.5" y1="247.7" x2="809.5" y2="246.8" stroke="#059669" opacity="0.35"/>
+<line x1="809.5" y1="246.8" x2="878.5" y2="310.5" stroke="#059669" opacity="0.35"/>
+<line x1="878.5" y1="310.5" x2="947.5" y2="301.2" stroke="#059669" opacity="0.35"/>
+<line x1="85" x2="1120" y1="246.7" y2="246.7" stroke="#334155" stroke-dasharray="5 4"/>
+<text x="32" y="625" class="sub">Shapes are categorical. Latency whiskers: minimum–p95. Speedup baseline: fastest valid industrial provider per shape.</text>
+</svg>

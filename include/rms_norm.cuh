@@ -35,14 +35,14 @@ __global__ void rms_norm(float* input, float* output, float eps = 1e-5) {
         float tmp = inp[i];
         sum += (tmp * tmp);
     }
-
+    sum = warp_reduce_sum(sum);
     if (lane_id == 0) warp_result[warp_id] = sum;
     __syncthreads();
 
     int num_warps = block_size / 32;
     if (warp_id == 0) {
         sum = (lane_id < num_warps) ? warp_result[lane_id] : 0.f;
-        warp_reduce_sum(sum);
+        sum = warp_reduce_sum(sum);
     }
     
     if (tid == 0) {

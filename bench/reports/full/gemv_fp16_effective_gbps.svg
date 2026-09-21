@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1232" height="650" viewBox="0 0 1232 650">
+<title>gemv · fp16</title>
+<rect width="100%" height="100%" fill="#fff"/>
+<style>text{font-family:Arial,sans-serif;fill:#1e293b;font-size:12px}.title{font-size:21px;font-weight:600}.sub{fill:#64748b}</style>
+<text x="32" y="36" class="title">gemv · fp16</text>
+<text x="32" y="62" class="sub">Logical GB/s; higher is better · log scale · only correctness-passing results · warm allocation reuse</text>
+<line x1="85" x2="1187" y1="470.0" y2="470.0" stroke="#e2e8f0"/>
+<text x="76" y="474.0" text-anchor="end">0.1</text>
+<line x1="85" x2="1187" y1="403.0" y2="403.0" stroke="#e2e8f0"/>
+<text x="76" y="407.0" text-anchor="end">1</text>
+<line x1="85" x2="1187" y1="336.0" y2="336.0" stroke="#e2e8f0"/>
+<text x="76" y="340.0" text-anchor="end">10</text>
+<line x1="85" x2="1187" y1="269.0" y2="269.0" stroke="#e2e8f0"/>
+<text x="76" y="273.0" text-anchor="end">100</text>
+<line x1="85" x2="1187" y1="202.0" y2="202.0" stroke="#e2e8f0"/>
+<text x="76" y="206.0" text-anchor="end">1000</text>
+<line x1="85" x2="1187" y1="135.0" y2="135.0" stroke="#e2e8f0"/>
+<text x="76" y="139.0" text-anchor="end">10000</text>
+<text transform="translate(119.4,486) rotate(50)" text-anchor="start">1×4096</text>
+<text transform="translate(188.3,486) rotate(50)" text-anchor="start">8×16384</text>
+<text transform="translate(257.2,486) rotate(50)" text-anchor="start">32×32768</text>
+<text transform="translate(326.1,486) rotate(50)" text-anchor="start">128×8192</text>
+<text transform="translate(394.9,486) rotate(50)" text-anchor="start">256×1024</text>
+<text transform="translate(463.8,486) rotate(50)" text-anchor="start">512×512</text>
+<text transform="translate(532.7,486) rotate(50)" text-anchor="start">1024×1024</text>
+<text transform="translate(601.6,486) rotate(50)" text-anchor="start">2048×4096</text>
+<text transform="translate(670.4,486) rotate(50)" text-anchor="start">4096×4096</text>
+<text transform="translate(739.3,486) rotate(50)" text-anchor="start">8192×4096</text>
+<text transform="translate(808.2,486) rotate(50)" text-anchor="start">16384×4096</text>
+<text transform="translate(877.1,486) rotate(50)" text-anchor="start">4096×16384</text>
+<text transform="translate(945.9,486) rotate(50)" text-anchor="start">65536×1024</text>
+<text transform="translate(1014.8,486) rotate(50)" text-anchor="start">1003×777</text>
+<text transform="translate(1083.7,486) rotate(50)" text-anchor="start">17×33</text>
+<text transform="translate(1152.6,486) rotate(50)" text-anchor="start">4096×128</text>
+<circle cx="35.0" cy="88" r="4" fill="#2563eb"/><text x="45.0" y="92">cublas</text>
+<circle cx="119.4" cy="367.6" r="4" fill="#2563eb"><title>cublas: 1×4096; effective_gbps=3.3782; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="188.3" cy="262.4" r="4" fill="#2563eb"><title>cublas: 8×16384; effective_gbps=125.39; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="257.2" cy="213.4" r="4" fill="#2563eb"><title>cublas: 32×32768; effective_gbps=676.4; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="326.1" cy="211.8" r="4" fill="#2563eb"><title>cublas: 128×8192; effective_gbps=712.89; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="394.9" cy="236.0" r="4" fill="#2563eb"><title>cublas: 256×1024; effective_gbps=310.52; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="463.8" cy="239.4" r="4" fill="#2563eb"><title>cublas: 512×512; effective_gbps=276.72; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="532.7" cy="204.3" r="4" fill="#2563eb"><title>cublas: 1024×1024; effective_gbps=925.37; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="601.6" cy="183.9" r="4" fill="#2563eb"><title>cublas: 2048×4096; effective_gbps=1860.1; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="670.4" cy="177.1" r="4" fill="#2563eb"><title>cublas: 4096×4096; effective_gbps=2352.6; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="739.3" cy="164.9" r="4" fill="#2563eb"><title>cublas: 8192×4096; effective_gbps=3573.1; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="808.2" cy="187.4" r="4" fill="#2563eb"><title>cublas: 16384×4096; effective_gbps=1653.2; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="877.1" cy="189.4" r="4" fill="#2563eb"><title>cublas: 4096×16384; effective_gbps=1542.1; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="945.9" cy="188.3" r="4" fill="#2563eb"><title>cublas: 65536×1024; effective_gbps=1600.7; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="1014.8" cy="215.9" r="4" fill="#2563eb"><title>cublas: 1003×777; effective_gbps=620.32; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="1083.7" cy="407.1" r="4" fill="#2563eb"><title>cublas: 17×33; effective_gbps=0.86711; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<circle cx="1152.6" cy="217.8" r="4" fill="#2563eb"><title>cublas: 4096×128; effective_gbps=580.73; GemmEx,N=1,FP32_accumulate,FP32_reduction</title></circle>
+<line x1="119.4" y1="367.6" x2="188.3" y2="262.4" stroke="#2563eb" opacity="0.35"/>
+<line x1="188.3" y1="262.4" x2="257.2" y2="213.4" stroke="#2563eb" opacity="0.35"/>
+<line x1="257.2" y1="213.4" x2="326.1" y2="211.8" stroke="#2563eb" opacity="0.35"/>
+<line x1="326.1" y1="211.8" x2="394.9" y2="236.0" stroke="#2563eb" opacity="0.35"/>
+<line x1="394.9" y1="236.0" x2="463.8" y2="239.4" stroke="#2563eb" opacity="0.35"/>
+<line x1="463.8" y1="239.4" x2="532.7" y2="204.3" stroke="#2563eb" opacity="0.35"/>
+<line x1="532.7" y1="204.3" x2="601.6" y2="183.9" stroke="#2563eb" opacity="0.35"/>
+<line x1="601.6" y1="183.9" x2="670.4" y2="177.1" stroke="#2563eb" opacity="0.35"/>
+<line x1="670.4" y1="177.1" x2="739.3" y2="164.9" stroke="#2563eb" opacity="0.35"/>
+<line x1="739.3" y1="164.9" x2="808.2" y2="187.4" stroke="#2563eb" opacity="0.35"/>
+<line x1="808.2" y1="187.4" x2="877.1" y2="189.4" stroke="#2563eb" opacity="0.35"/>
+<line x1="877.1" y1="189.4" x2="945.9" y2="188.3" stroke="#2563eb" opacity="0.35"/>
+<line x1="945.9" y1="188.3" x2="1014.8" y2="215.9" stroke="#2563eb" opacity="0.35"/>
+<line x1="1014.8" y1="215.9" x2="1083.7" y2="407.1" stroke="#2563eb" opacity="0.35"/>
+<line x1="1083.7" y1="407.1" x2="1152.6" y2="217.8" stroke="#2563eb" opacity="0.35"/>
+<circle cx="325.5" cy="88" r="4" fill="#dc2626"/><text x="335.5" y="92">cublaslt</text>
+<circle cx="119.4" cy="341.6" r="4" fill="#dc2626"><title>cublaslt: 1×4096; effective_gbps=8.2431; algorithm=14,split_k=32,heuristic_candidates=8,required_workspace=131</title></circle>
+<circle cx="188.3" cy="262.1" r="4" fill="#dc2626"><title>cublaslt: 8×16384; effective_gbps=126.91; algorithm=14,split_k=64,heuristic_candidates=8,required_workspace=2051</title></circle>
+<circle cx="257.2" cy="213.4" r="4" fill="#dc2626"><title>cublaslt: 32×32768; effective_gbps=675.86; algorithm=14,split_k=29,heuristic_candidates=8,required_workspace=3715</title></circle>
+<circle cx="326.1" cy="211.9" r="4" fill="#dc2626"><title>cublaslt: 128×8192; effective_gbps=712.27; algorithm=13,split_k=8,heuristic_candidates=10,required_workspace=4112</title></circle>
+<circle cx="394.9" cy="236.1" r="4" fill="#dc2626"><title>cublaslt: 256×1024; effective_gbps=310.29; algorithm=13,split_k=1,heuristic_candidates=9,required_workspace=0</title></circle>
+<circle cx="463.8" cy="236.7" r="4" fill="#dc2626"><title>cublaslt: 512×512; effective_gbps=303.24; algorithm=13,split_k=1,heuristic_candidates=8,required_workspace=0</title></circle>
+<circle cx="532.7" cy="204.2" r="4" fill="#dc2626"><title>cublaslt: 1024×1024; effective_gbps=926.15; algorithm=13,split_k=1,heuristic_candidates=9,required_workspace=0</title></circle>
+<circle cx="601.6" cy="171.4" r="4" fill="#dc2626"><title>cublaslt: 2048×4096; effective_gbps=2859.6; algorithm=21,split_k=4,heuristic_candidates=8,required_workspace=16384</title></circle>
+<circle cx="670.4" cy="164.8" r="4" fill="#dc2626"><title>cublaslt: 4096×4096; effective_gbps=3587.9; algorithm=21,split_k=7,heuristic_candidates=8,required_workspace=114688</title></circle>
+<circle cx="739.3" cy="159.0" r="4" fill="#dc2626"><title>cublaslt: 8192×4096; effective_gbps=4389.1; algorithm=21,split_k=1,heuristic_candidates=8,required_workspace=0</title></circle>
+<circle cx="808.2" cy="187.3" r="4" fill="#dc2626"><title>cublaslt: 16384×4096; effective_gbps=1654.9; algorithm=21,split_k=1,heuristic_candidates=8,required_workspace=0</title></circle>
+<circle cx="877.1" cy="187.8" r="4" fill="#dc2626"><title>cublaslt: 4096×16384; effective_gbps=1629.4; algorithm=13,split_k=4,heuristic_candidates=8,required_workspace=65552</title></circle>
+<circle cx="945.9" cy="187.7" r="4" fill="#dc2626"><title>cublaslt: 65536×1024; effective_gbps=1634.8; algorithm=13,split_k=1,heuristic_candidates=8,required_workspace=0</title></circle>
+<circle cx="1014.8" cy="215.9" r="4" fill="#dc2626"><title>cublaslt: 1003×777; effective_gbps=620.64; algorithm=13,split_k=1,heuristic_candidates=10,required_workspace=0</title></circle>
+<circle cx="1083.7" cy="403.6" r="4" fill="#dc2626"><title>cublaslt: 17×33; effective_gbps=0.97967; algorithm=13,split_k=1,heuristic_candidates=8,required_workspace=0</title></circle>
+<circle cx="1152.6" cy="215.8" r="4" fill="#dc2626"><title>cublaslt: 4096×128; effective_gbps=622.07; algorithm=21,split_k=1,heuristic_candidates=9,required_workspace=0</title></circle>
+<line x1="119.4" y1="341.6" x2="188.3" y2="262.1" stroke="#dc2626" opacity="0.35"/>
+<line x1="188.3" y1="262.1" x2="257.2" y2="213.4" stroke="#dc2626" opacity="0.35"/>
+<line x1="257.2" y1="213.4" x2="326.1" y2="211.9" stroke="#dc2626" opacity="0.35"/>
+<line x1="326.1" y1="211.9" x2="394.9" y2="236.1" stroke="#dc2626" opacity="0.35"/>
+<line x1="394.9" y1="236.1" x2="463.8" y2="236.7" stroke="#dc2626" opacity="0.35"/>
+<line x1="463.8" y1="236.7" x2="532.7" y2="204.2" stroke="#dc2626" opacity="0.35"/>
+<line x1="532.7" y1="204.2" x2="601.6" y2="171.4" stroke="#dc2626" opacity="0.35"/>
+<line x1="601.6" y1="171.4" x2="670.4" y2="164.8" stroke="#dc2626" opacity="0.35"/>
+<line x1="670.4" y1="164.8" x2="739.3" y2="159.0" stroke="#dc2626" opacity="0.35"/>
+<line x1="739.3" y1="159.0" x2="808.2" y2="187.3" stroke="#dc2626" opacity="0.35"/>
+<line x1="808.2" y1="187.3" x2="877.1" y2="187.8" stroke="#dc2626" opacity="0.35"/>
+<line x1="877.1" y1="187.8" x2="945.9" y2="187.7" stroke="#dc2626" opacity="0.35"/>
+<line x1="945.9" y1="187.7" x2="1014.8" y2="215.9" stroke="#dc2626" opacity="0.35"/>
+<line x1="1014.8" y1="215.9" x2="1083.7" y2="403.6" stroke="#dc2626" opacity="0.35"/>
+<line x1="1083.7" y1="403.6" x2="1152.6" y2="215.8" stroke="#dc2626" opacity="0.35"/>
+<circle cx="616.0" cy="88" r="4" fill="#059669"/><text x="626.0" y="92">gemv</text>
+<circle cx="119.4" cy="340.9" r="4" fill="#059669"><title>gemv: 1×4096; effective_gbps=8.4415; group=32,warps=8,splits=16</title></circle>
+<circle cx="188.3" cy="261.6" r="4" fill="#059669"><title>gemv: 8×16384; effective_gbps=128.94; group=32,warps=4,splits=32</title></circle>
+<circle cx="257.2" cy="209.8" r="4" fill="#059669"><title>gemv: 32×32768; effective_gbps=765.93; group=32,warps=8,splits=32</title></circle>
+<circle cx="326.1" cy="206.6" r="4" fill="#059669"><title>gemv: 128×8192; effective_gbps=854.54; group=32,warps=8,splits=16</title></circle>
+<circle cx="394.9" cy="236.1" r="4" fill="#059669"><title>gemv: 256×1024; effective_gbps=310.29; group=32,warps=4,splits=1</title></circle>
+<circle cx="463.8" cy="233.8" r="4" fill="#059669"><title>gemv: 512×512; effective_gbps=335.81; group=32,warps=4,splits=1</title></circle>
+<circle cx="532.7" cy="202.6" r="4" fill="#059669"><title>gemv: 1024×1024; effective_gbps=978.6; group=32,warps=8,splits=1</title></circle>
+<circle cx="601.6" cy="165.9" r="4" fill="#059669"><title>gemv: 2048×4096; effective_gbps=3462.3; group=4,warps=8,splits=16</title></circle>
+<circle cx="670.4" cy="156.7" r="4" fill="#059669"><title>gemv: 4096×4096; effective_gbps=4751.3; group=32,warps=4,splits=1</title></circle>
+<circle cx="739.3" cy="152.8" r="4" fill="#059669"><title>gemv: 8192×4096; effective_gbps=5420.1; group=16,warps=8,splits=1</title></circle>
+<circle cx="808.2" cy="187.8" r="4" fill="#059669"><title>gemv: 16384×4096; effective_gbps=1630.6; group=8,warps=8,splits=1</title></circle>
+<circle cx="877.1" cy="187.7" r="4" fill="#059669"><title>gemv: 4096×16384; effective_gbps=1633.4; group=32,warps=4,splits=1</title></circle>
+<circle cx="945.9" cy="187.2" r="4" fill="#059669"><title>gemv: 65536×1024; effective_gbps=1663.6; group=32,warps=4,splits=1</title></circle>
+<circle cx="1014.8" cy="215.9" r="4" fill="#059669"><title>gemv: 1003×777; effective_gbps=620.64; group=32,warps=8,splits=1</title></circle>
+<circle cx="1083.7" cy="400.6" r="4" fill="#059669"><title>gemv: 17×33; effective_gbps=1.0873; group=8,warps=8,splits=1</title></circle>
+<circle cx="1152.6" cy="211.3" r="4" fill="#059669"><title>gemv: 4096×128; effective_gbps=727.26; group=8,warps=8,splits=1</title></circle>
+<line x1="119.4" y1="340.9" x2="188.3" y2="261.6" stroke="#059669" opacity="0.35"/>
+<line x1="188.3" y1="261.6" x2="257.2" y2="209.8" stroke="#059669" opacity="0.35"/>
+<line x1="257.2" y1="209.8" x2="326.1" y2="206.6" stroke="#059669" opacity="0.35"/>
+<line x1="326.1" y1="206.6" x2="394.9" y2="236.1" stroke="#059669" opacity="0.35"/>
+<line x1="394.9" y1="236.1" x2="463.8" y2="233.8" stroke="#059669" opacity="0.35"/>
+<line x1="463.8" y1="233.8" x2="532.7" y2="202.6" stroke="#059669" opacity="0.35"/>
+<line x1="532.7" y1="202.6" x2="601.6" y2="165.9" stroke="#059669" opacity="0.35"/>
+<line x1="601.6" y1="165.9" x2="670.4" y2="156.7" stroke="#059669" opacity="0.35"/>
+<line x1="670.4" y1="156.7" x2="739.3" y2="152.8" stroke="#059669" opacity="0.35"/>
+<line x1="739.3" y1="152.8" x2="808.2" y2="187.8" stroke="#059669" opacity="0.35"/>
+<line x1="808.2" y1="187.8" x2="877.1" y2="187.7" stroke="#059669" opacity="0.35"/>
+<line x1="877.1" y1="187.7" x2="945.9" y2="187.2" stroke="#059669" opacity="0.35"/>
+<line x1="945.9" y1="187.2" x2="1014.8" y2="215.9" stroke="#059669" opacity="0.35"/>
+<line x1="1014.8" y1="215.9" x2="1083.7" y2="400.6" stroke="#059669" opacity="0.35"/>
+<line x1="1083.7" y1="400.6" x2="1152.6" y2="211.3" stroke="#059669" opacity="0.35"/>
+<text x="32" y="625" class="sub">Shapes are categorical. Latency whiskers: minimum–p95. Speedup baseline: fastest valid industrial provider per shape.</text>
+</svg>
