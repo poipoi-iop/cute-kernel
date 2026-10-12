@@ -1,5 +1,13 @@
 以下内容由 AI 自动总结
 
+## 独立 FA2 对比
+
+```bash
+.venv/bin/python bench/fa2_bench.py --output bench/reports/fa2
+```
+
+只编译 `bench/fa2.cu`，比较 `include/fa2` 与 `flash_attn.flash_attn_func`，不调用现有 `build.py` / `run.py`，也不运行 GEMM、GEMV 或 normalization benchmark。需要 CUDA、PyTorch 和 flash_attn；本机 `.venv` 已安装依赖。独立结果见 [bench/reports/fa2/report.md](bench/reports/fa2/report.md)，实现分析与计时口径见 [docs/fa2.md](docs/fa2.md)。
+
 ## 构建与运行
 
 需要 CUDA Toolkit（本机为 12.8）、C++17 编译器、Python 3，以及仓库已有的 CuTe/CUTLASS 头文件。构建和绘图不需要 CMake、NumPy、Matplotlib 或 PyTorch。PyTorch 仅用于 softmax/RMSNorm 的可选工业基线。
@@ -26,8 +34,8 @@ python3 bench/run.py --torch-compile --output bench/results/inductor
 # 用普通 CUDA events 计时，独立输出，避免与 graph 数据混合。
 python3 bench/run.py --timing events --output bench/results/events
 
-# 只测 GEMV，关闭搜索以评测默认启发式。
-python3 bench/run.py --ops gemv --no-tune --output bench/results/gemv_default
+# 只测 GEMV（GEMV 无调参，--no-tune 只影响 GEMM）。
+python3 bench/run.py --ops gemv --output bench/results/gemv
 
 # 自定义 shape 文件与重新生成图表。
 python3 bench/run.py --shapes bench/shapes.json --output bench/results/custom
@@ -70,32 +78,28 @@ workspace 为 `4 × splits × M × N` 字节，`splits=1` 或空算子不需要 
 
 ## GEMV 的接口与优化
 
-数学语义是连续行主序 `y[M] = A[M,K] × x[K]`，支持 `__half` 与 `float`，输出与输入类型相同，内部均为 FP32 FMA。
+数学语义是连续行主序 `y[M] = A[M,K] × x[K]`，支持 `__half` 与 `float`，输出与输入类型相同，内部均为 FP32 FMA。实现为纯 CUDA（不依赖 CuTe），只有一个 kernel 模板 `gemv_kernel<T, G, THREADS, VEC>` 和一个 host 函数 `gemv()`。设计思路与 RTX 3090 实测数据见 [docs/gemv.md](docs/gemv.md)。
 
-- CuTe `ThreadLayout` 为 `(Rows,Group):(Group,1)`，`ValueLayout` 为 `(1,V)`，由 `make_tiled_copy` 明确分配每个线程的行与连续 K 元素。
-- A 使用行主序 CuTe tensor；x 使用 M 维 stride=0 的广播视图。`domain_offset` 定位 Split-K 起点，`local_tile` 与 `partition_S` 提取线程分片，`cute::copy` 将数据加载到寄存器 tensor。
-- 16-byte 加载：每线程 8 个 FP16 或 4 个 FP32；半精度先转换为 FP32 再相乘累加。
-- 4 个独立累加器降低依赖链；同一行用 4/8/16/32 个 lane，CTA 为 4/8 个 warp。
-- 多行并行和合并访问，warp subgroup shuffle 归约，无常规路径的 shared-memory barrier。
-- M 小、K 大时可沿 K 增加 CTA 并行度，再归约 FP32 partial；包含完整 workspace 和尾部处理。
-- 行 stride 或指针不满足向量对齐时走 scalar fallback；支持非整齐尺寸与 K=0。
+- 每 G 个相邻线程算一行：G≤32 时一个 warp 放多行，只用 shuffle 归约；G>32 时一个 CTA 算一行，warp 间经 shared memory 归约。
+- 16 字节向量加载（8 个 FP16 / 4 个 FP32），每线程 4 路独立 load 并行在途；不满足对齐时走逐元素加载。
+- `gemv()` 按"每线程约 4 次加载"选 G，无运行时调参。
+- 行数少于 SM 数且单行 ≥ 64 KB 时，可选的 workspace 打开单 kernel Split-K：最后到达的 CTA 按固定顺序归约，结果确定，无第二次 launch。
 
 ```cpp
 #include "gemv.cuh"
 
-cute_kernel::GemvPlan plan;
-cudaError_t status = cute_kernel::make_gemv_plan(
-    &plan, M, K, sm_count, /*group=*/0, /*warps=*/4, /*splits=*/0);
-// 检查 status 并按 plan.workspace_bytes 分配 workspace。
-status = cute_kernel::launch_gemv(
-    plan, A, x, y, workspace, workspace_bytes, stream);
+// 可选：Split-K workspace，分配后清零一次即可反复使用。
+void* workspace;
+cudaMalloc(&workspace, cute_kernel::gemv_workspace_bytes(M));
+cudaMemset(workspace, 0, cute_kernel::gemv_workspace_bytes(M));
+cudaError_t status = cute_kernel::gemv(A, x, y, M, K, stream, workspace);
 ```
 
-FP32 partial workspace 为 `4 × splits × M` 字节，split=1 时为 0。`make_gemv_plan` 的 group=0、splits=0 使用默认启发式，bench 会测量候选并把胜出的 group/warps/splits 写进结果。候选搜索与最终计时分开；库接口本身不会偷偷调参。
+workspace 为 `68 × M` 字节（16 个 FP32 partial + 1 个计数器每行），传 `nullptr` 则不走 Split-K。同一 workspace 不可被不同 stream 并发使用。
 
 两类接口都要求调用方提供足够大的 device buffer，输入、输出及 workspace 不重叠，满足各元素的自然对齐，且在 stream 完成前保持有效。同一 workspace 不可被不同 stream 的并发 launch 共享。不同 K 分区可能改变浮点求和顺序；保证固定配置的归约顺序，而不保证与 cuBLAS 或其他 split 数逐 bit 相同。
 
-新增源码统一使用四空格缩进。kernel 内注释说明 CuTe layout、线程/元素映射、K 分区、predicate、流水线同步与 workspace 生命周期。`test_kernels --host-only` 还会实际执行 32 种 CuTe host copy 配置，核对广播、尾部以及 Split-K 对全部矩阵元素的唯一覆盖；这些检查不替代 GPU 数值与并发验证。
+新增源码统一使用四空格缩进。kernel 内注释说明线程/元素映射、K 分区、predicate、流水线同步与 workspace 生命周期。
 
 ## 评测覆盖与工业实现
 
@@ -109,13 +113,13 @@ FP32 partial workspace 为 `4 × splits × M` 字节，split=1 时为 0。`make_
 | Softmax / online softmax | 原 kernel | PyTorch softmax，可选 Inductor |
 | RMSNorm FP32、无 weight | 原 kernel，eps=1e-5 | PyTorch F.rms_norm，可选 Inductor |
 
-自有 GEMM 搜索 splits={1,2,4,8,16,32} 中合法且 workspace 不超过 32 MiB 的候选。GEMV 搜索 group={4,8,16,32}、warps={4,8} 和适合 M/K 的 split 数。`--no-tune` 使用默认计划。每个候选在参与搜索前检查正确性；无效候选会产生失败记录，不会悄悄进入最终性能图。
+自有 GEMM 搜索 splits={1,2,4,8,16,32} 中合法且 workspace 不超过 32 MiB 的候选。GEMV 直接使用 `gemv()` 的内置启发式，不做搜索。`--no-tune` 使用 GEMM 默认计划。每个候选在参与搜索前检查正确性；无效候选会产生失败记录，不会悄悄进入最终性能图。
 
 ## 计时、准确性与报告
 
 默认 CUDA Graph 捕获 50 次完整算子执行；10 次预热、9 组独立采样，输出 median/min/p95 和原始 samples。每组采样包含一次 graph replay；计时对象包括 Split-K partial 和 reduction，排除构造计划、分配、传输、参考计算与调参。`--timing events` 用同样迭代数直接提交操作，可能受到 CPU 提交速度影响，必须与 graph 结果分开比较。
 
-输入固定 seed，GEMM/GEMV 使用均匀量级约 [-0.25,0.25)，normalization 使用 [-1,1)；Python 工业基线和 C++ 原算子使用相同生成公式。单独的 correctness 程序另含零输入、较大幅值的抵消、零 K、短流水线、misalignment、所有 GEMV dispatch、输出/workspace guard、非默认 stream、Graph replay 以及重复执行一致性检查。
+输入固定 seed，GEMM/GEMV 使用均匀量级约 [-0.25,0.25)，normalization 使用 [-1,1)；Python 工业基线和 C++ 原算子使用相同生成公式。单独的 correctness 程序另含零输入、较大幅值的抵消、零 K、短流水线、misalignment、所有 GEMV dispatch 实例与显式 Split-K、输出/workspace guard、Split-K 计数器归零、非默认 stream、Graph replay 以及重复执行一致性检查。
 
 | 检查 | 参考与误差上限 `atol + rtol × abs(ref)` |
 |---|---|

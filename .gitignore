@@ -3,3 +3,6 @@ results/
 **/__pycache__/
 **/*.log
 **/build_manifest.json
+docs/
+.clangd
+.venv/

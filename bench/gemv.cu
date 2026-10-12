@@ -5,7 +5,7 @@
 namespace bench {
 
 // 对每个 shape/精度独立构造输入和 CPU FP64 参考，复用相同的 GPU 数据比较
-// 自有 CuTe GEMV、cuBLAS 与 cuBLASLt。所有初始化和搜索都在正式计时之外。
+// 自有 GEMV、cuBLAS 与 cuBLASLt。所有初始化都在正式计时之外。
 template <class T>
 void gemv_case(Context& context, const Options& o) {
     auto a = inputs<T>(std::size_t(o.m) * o.k, o.seed);
@@ -18,40 +18,12 @@ void gemv_case(Context& context, const Options& o) {
     da.upload(a); dx.upload(x);
     constexpr bool half = std::is_same_v<T, __half>;
     double atol = half ? 0.002 : 2e-5, rtol = half ? 0.002 : 2e-4;
-    cute_kernel::GemvPlan best_plan;
-    CUDA_CHECK(cute_kernel::make_gemv_plan(&best_plan, o.m, o.k, context.prop.multiProcessorCount));
-    double best_time = std::numeric_limits<double>::infinity();
-    // 搜索线程布局和 K 分区。大 M 已有足够多 CTA 时不再扩大 split，
-    // 每个 split 太短时也跳过，避免单纯增加归约开销。
-    std::vector<cute_kernel::GemvPlan> candidates;
-    if (!o.tune) candidates.push_back(best_plan);
-    else for (int group : {4, 8, 16, 32}) for (int warps : {4, 8}) for (int split : {1, 2, 4, 8, 16, 32}) {
-        if (split > 1 && (o.k / split < 256 || o.m > context.prop.multiProcessorCount * 16)) continue;
-        cute_kernel::GemvPlan p;
-        if (cute_kernel::make_gemv_plan(&p, o.m, o.k, context.prop.multiProcessorCount, group, warps, split) == cudaSuccess)
-            candidates.push_back(p);
-    }
-    auto config = [](const cute_kernel::GemvPlan& p) {
-        return "group=" + std::to_string(p.group) + ",warps=" + std::to_string(p.warps) + ",splits=" + std::to_string(p.splits);
-    };
-    // 每个候选都先验证；失败也输出记录，不能因“没被选中”而掩盖错误。
-    for (const auto& plan : candidates) {
-        Buffer<unsigned char> workspace(plan.workspace_bytes);
-        auto fn = [&] { CUDA_CHECK(cute_kernel::launch_gemv(plan, da.ptr, dx.ptr, dy.ptr,
-                workspace.ptr, workspace.size, context.stream)); };
-        auto accuracy = validate(fn, dy, reference, context.stream, atol, rtol);
-        if (!accuracy.passed) {
-            emit(o, "gemv_candidate", "correctness_failed", "invalid tuning candidate", config(plan), &accuracy);
-            continue;
-        }
-        double time = measure(fn, context.stream, tuning_options(o)).median;
-        if (time < best_time) { best_time = time; best_plan = plan; }
-    }
-    if (!std::isfinite(best_time)) throw std::runtime_error("no correct GEMV candidate");
-    Buffer<unsigned char> workspace(best_plan.workspace_bytes);
-    auto fn = [&] { CUDA_CHECK(cute_kernel::launch_gemv(best_plan, da.ptr, dx.ptr, dy.ptr,
-            workspace.ptr, workspace.size, context.stream)); };
-    evaluate(o, "gemv", fn, dy, reference, context.stream, atol, rtol, config(best_plan), workspace.size);
+    // 自有 GEMV 不做运行时调参：gemv() 内部按 M/K 选择线程映射与 Split-K。
+    // workspace 只需在分配后清零一次，kernel 会自行把计数器归零。
+    Buffer<unsigned char> workspace(cute_kernel::gemv_workspace_bytes(o.m));
+    CUDA_CHECK(cudaMemset(workspace.ptr, 0, workspace.size));
+    auto fn = [&] { CUDA_CHECK(cute_kernel::gemv(da.ptr, dx.ptr, dy.ptr, o.m, o.k, context.stream, workspace.ptr)); };
+    evaluate(o, "gemv", fn, dy, reference, context.stream, atol, rtol, "heuristic", workspace.size);
 
     // cuBLAS 按列主序解释 A：原行主序 [M,K] 等价于列主序 [K,M]。
     // Sgemv 取 transpose，FP16 使用同一数学语义的 GemmEx(M,1,K)。

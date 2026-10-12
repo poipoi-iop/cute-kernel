@@ -1,292 +1,256 @@
 #pragma once
 
-// New implementation derived from include/gemm.cuh's tiled CuTe design.
+// Split-K FP16 GEMM in the style of include/gemm.cuh, following docs/splitk.md.
+//
 // Contract: C[M,N] = A[M,K] * transpose(B[N,K]), all row-major FP16.
-// SM80+, FP32 accumulation; no allocation or synchronization in launch().
+//
+// The three differences from gemm.cuh, and nothing else:
+//   1. grid has a third dimension: blockIdx.z indexes a K segment
+//   2. the K loop runs over [k_tile_begin, k_tile_end) instead of [0, k_tiles)
+//   3. the epilogue writes FP32 partials to a workspace, and a second kernel
+//      reduces them into C
+//
+// Like gemm.cuh, this assumes whole tiles: M and N must be multiples of the
+// CTA tile and K a multiple of BK, matching the 128-bit cp.async requirement.
+// can_launch() below reports that, and the caller falls back otherwise.
 #include <cuda_runtime.h>
 #include <cute/tensor.hpp>
-#include <algorithm>
 #include <cstddef>
-#include <cstdint>
-#include <limits>
 
-namespace cute_kernel {
+namespace hgemm_splitk {
 
-// 一个 CTA 使用 4 个 warp，按 2×2 的 warp 网格覆盖 M/N。
-// MMA 指令的输入为 FP16，accumulator 为 FP32；TileM/TileN 必须能被
-// warp 网格的基本 tile 整除。K 固定为 32，即每轮两组 k=16 的 MMA。
-template <int TileM = 64, int TileN = 64, int Stages = 3>
-struct SplitKConfig {
-    static_assert(TileM % 32 == 0 && TileN % 32 == 0);
-    static_assert(Stages >= 2 && Stages <= 4);
-    using T = cute::half_t;
-    static constexpr int kTileM = TileM, kTileN = TileN, kTileK = 32;
-    static constexpr int kStages = Stages, kThreads = 128;
-    using TiledMMA = decltype(cute::make_tiled_mma(
-            cute::SM80_16x8x16_F32F16F16F32_TN{},
-            cute::Layout<cute::Shape<cute::_2, cute::_2, cute::_1>>{},
-            cute::Tile<cute::_32, cute::_32, cute::_16>{}));
-    // swizzle 改变 shared-memory bank 映射，而不改变逻辑 (row,k,stage)
-    // 坐标。低 3 位保持连续，因此一个 8-half 向量仍可用 16-byte cp.async。
-    using SmemAtom = decltype(cute::composition(
-            cute::Swizzle<2, 3, 3>{},
-            cute::Layout<cute::Shape<cute::_8, cute::_32>,
-            cute::Stride<cute::_32, cute::_1>>{}));
-    using SmemA = decltype(cute::tile_to_shape(
-            SmemAtom{}, cute::Shape<cute::Int<TileM>, cute::_32, cute::Int<Stages>>{}));
-    using SmemB = decltype(cute::tile_to_shape(
-            SmemAtom{}, cute::Shape<cute::Int<TileN>, cute::_32, cute::Int<Stages>>{}));
-    static constexpr int kSharedBytes =
-        (cute::cosize(SmemA{}) + cute::cosize(SmemB{})) * sizeof(T);
-};
+using namespace cute;
 
-namespace splitk_detail {
+// ---------------------------------------------------------------------------
+// Tile shapes and the CuTe types of one tile. Same shape of Config as in
+// gemm.cuh: the kernel below only ever asks Config for a type or a constant.
+// ---------------------------------------------------------------------------
+using T = half_t;
 
-inline int ceil_div(int x, int y) { return x / y + (x % y != 0); }
+using BM_t = Int<64>;  // CTA tile rows
+using BN_t = Int<64>;  // CTA tile cols
+using BK_t = Int<32>;  // K width of one pipeline stage
+constexpr int kStages = 3;
+constexpr int kThreads = 128;
 
-// A complete 16-byte vector is copied asynchronously. Invalid vectors use
-// cp.async's zero-fill operand; an unaligned K uses the scalar fallback below.
-__device__ __forceinline__ void copy16(void* dst, const void* src, bool valid) {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 800
-    unsigned address = static_cast<unsigned>(__cvta_generic_to_shared(dst));
-    asm volatile("cp.async.cg.shared.global [%0], [%1], 16, %2;\n"
-        :: "r"(address), "l"(src), "r"(valid ? 16 : 0) : "memory");
-#endif
-}
+using MmaOp = SM80_16x8x16_F32F16F16F32_TN;
+using TiledMma = decltype(make_tiled_mma(
+    MmaOp{},
+    make_layout(make_shape(_2{}, _2{}, _1{})),   // 4 warps: 2 in M, 2 in N
+    make_tile(_32{}, _32{}, _16{})));            // 32x32x16 per warp
 
-// 将一个 K tile 写入指定 ring-buffer stage，所有元素都必须被覆盖。
-// 完整向量使用 cp.async，超出矩阵或当前 split 的向量写零；fallback 对
-// 每个元素做 predicate。这样短 K、尾部和流水线 drain 不会读取遗留数据。
-template <class Config, bool Vectorized, class TensorA, class TensorB>
-__device__ __forceinline__ void load_tile(
-    const typename Config::T* a, const typename Config::T* b,
-    TensorA& sa, TensorB& sb, int m, int n, int k, int row_a, int row_b,
-    int ktile, int end_tile, int stage) {
-    using T = typename Config::T;
-    constexpr int BK = Config::kTileK;
-    if constexpr (Vectorized) {
+// Global -> shared, 16 bytes (8 halves) per thread.
+using G2SCopy = decltype(make_tiled_copy(
+    Copy_Atom<SM80_CP_ASYNC_CACHEGLOBAL<cute::uint128_t>, T>{},
+    make_layout(make_shape(_32{}, _4{}), make_stride(_4{}, _1{})),
+    make_layout(make_shape(_1{}, _8{}))));
+
+// Shared: 8x32 atom with a swizzle, tiled over (BM|BN, BK, stages).
+using SmemAtom = decltype(composition(
+    Swizzle<3, 3, 3>{},
+    make_layout(make_shape(_8{}, BK_t{}), make_stride(BK_t{}, _1{}))));
+using SmemLayoutA = decltype(tile_to_shape(
+    SmemAtom{}, make_shape(BM_t{}, BK_t{}, Int<kStages>{})));
+using SmemLayoutB = decltype(tile_to_shape(
+    SmemAtom{}, make_shape(BN_t{}, BK_t{}, Int<kStages>{})));
+
+// Shared -> registers via ldmatrix.
+using S2RCopyAtomA = Copy_Atom<SM75_U32x4_LDSM_N, T>;
+using S2RCopyAtomB = Copy_Atom<SM75_U32x4_LDSM_N, T>;
+
+constexpr int kSmemBytes = (cosize(SmemLayoutA{}) + cosize(SmemLayoutB{})) * sizeof(T);
+
+// ---------------------------------------------------------------------------
+// Main kernel. Only the K interval and the epilogue differ from gemm.cuh.
+// ---------------------------------------------------------------------------
+__global__ __launch_bounds__(kThreads) void hgemm_splitk_kernel(
+    T const* __restrict__ A,       // [M, K] row-major
+    T const* __restrict__ B,       // [N, K] row-major, i.e. B^T
+    float* __restrict__ ws,        // [splits, M, N] FP32
+    T* __restrict__ C,             // [M, N] only written when splits == 1
+    int M, int N, int K, int splits) {
+    constexpr int BK = BK_t::value;
+    constexpr int BM = BM_t::value;
+    constexpr int BN = BN_t::value;
+
+    // This CTA's K interval, in units of BK. Contiguous and disjoint; the
+    // trailing splits can be empty when K does not divide evenly.
+    const int k_tiles = K / BK;
+    const int per_split = (k_tiles + splits - 1) / splits;
+    const int k_begin = blockIdx.z * per_split;
+    const int k_count = min(per_split, k_tiles - k_begin);
+
+    // Same convention as gemm.cuh: blockIdx.x walks N, blockIdx.y walks M.
+    const int ix = blockIdx.x, iy = blockIdx.y;
+
+    // gA: (BM, BK, k_tiles), gB: (BN, BK, k_tiles). The k-tile mode is what the
+    // pipeline steps through; k_begin is picked per iteration.
+    Tensor mA = make_tensor(make_gmem_ptr(A), make_layout(make_shape(M, K), make_stride(K, _1{})));
+    Tensor mB = make_tensor(make_gmem_ptr(B), make_layout(make_shape(N, K), make_stride(K, _1{})));
+    Tensor gA = local_tile(mA, make_shape(BM_t{}, BK_t{}), make_coord(iy, _));
+    Tensor gB = local_tile(mB, make_shape(BN_t{}, BK_t{}), make_coord(ix, _));
+
+    extern __shared__ __align__(16) char smem_raw[];
+    T* smem = reinterpret_cast<T*>(smem_raw);
+    Tensor sA = make_tensor(make_smem_ptr(smem), SmemLayoutA{});
+    Tensor sB = make_tensor(make_smem_ptr(smem + cosize(SmemLayoutA{})), SmemLayoutB{});
+
+    TiledMma tiled_mma;
+    auto thr_mma = tiled_mma.get_slice(threadIdx.x);
+
+    auto thr_g2s_a = G2SCopy{}.get_slice(threadIdx.x);
+    auto thr_g2s_b = G2SCopy{}.get_slice(threadIdx.x);
+    Tensor tAgA = thr_g2s_a.partition_S(gA);   // (CPY, CPY_M, CPY_K, k_tiles)
+    Tensor tAsA = thr_g2s_a.partition_D(sA);   // (CPY, CPY_M, CPY_K, stages)
+    Tensor tBgB = thr_g2s_b.partition_S(gB);
+    Tensor tBsB = thr_g2s_b.partition_D(sB);
+
+    auto s2r_copy_a = make_tiled_copy_A(S2RCopyAtomA{}, tiled_mma);
+    auto thr_s2r_a = s2r_copy_a.get_slice(threadIdx.x);
+    Tensor tCsA = thr_s2r_a.partition_S(sA);
+    // Fragment layouts come off the logical (M,K) gmem tile, exactly as in
+    // gemm.cuh. Deriving them from the swizzled smem tensor would describe the
+    // bank-conflict-free address pattern instead of the MMA's register layout.
+    Tensor tCrA = thr_mma.partition_fragment_A(gA(_, _, 0));
+    Tensor rA = thr_s2r_a.retile_D(tCrA);
+
+    auto s2r_copy_b = make_tiled_copy_B(S2RCopyAtomB{}, tiled_mma);
+    auto thr_s2r_b = s2r_copy_b.get_slice(threadIdx.x);
+    Tensor tCsB = thr_s2r_b.partition_S(sB);
+    Tensor tCrB = thr_mma.partition_fragment_B(gB(_, _, 0));
+    Tensor rB = thr_s2r_b.retile_D(tCrB);
+
+    Tensor accum = partition_fragment_C(tiled_mma, make_shape(BM_t{}, BN_t{}));
+    clear(accum);
+
+    // An empty K interval contributes zeros, not a skipped store: every split
+    // owns its own FP32 slab and every element of it must be written.
+    if (k_count <= 0) {
+        float* slab = ws + (std::size_t)blockIdx.z * M * N;
+        Tensor gWS = local_tile(
+            make_tensor(make_gmem_ptr(slab), make_layout(make_shape(M, N), make_stride(N, _1{}))),
+            make_shape(BM_t{}, BN_t{}), make_coord(iy, ix));
+        Tensor tCgWS = thr_mma.partition_C(gWS);
 #pragma unroll
-        for (int v = threadIdx.x; v < Config::kTileM * BK / 8; v += Config::kThreads) {
-            int r = v / (BK / 8), c = (v % (BK / 8)) * 8;
-            std::int64_t gk = std::int64_t(ktile) * BK + c;
-            bool valid = ktile < end_tile && row_a + r < m && gk < k;
-            const T* source = valid ? a + std::size_t(row_a + r) * k + gk : a;
-            copy16(&sa(r, c, stage), source, valid);
-        }
-#pragma unroll
-        for (int v = threadIdx.x; v < Config::kTileN * BK / 8; v += Config::kThreads) {
-            int r = v / (BK / 8), c = (v % (BK / 8)) * 8;
-            std::int64_t gk = std::int64_t(ktile) * BK + c;
-            bool valid = ktile < end_tile && row_b + r < n && gk < k;
-            const T* source = valid ? b + std::size_t(row_b + r) * k + gk : b;
-            copy16(&sb(r, c, stage), source, valid);
-        }
-    } else {
-        // General strides and K tails: each shared-memory element is initialized.
-#pragma unroll
-        for (int i = threadIdx.x; i < Config::kTileM * BK; i += Config::kThreads) {
-            int r = i / BK, c = i % BK;
-            std::int64_t gk = std::int64_t(ktile) * BK + c;
-            bool valid = ktile < end_tile && row_a + r < m && gk < k;
-            sa(r, c, stage) = valid ? a[std::size_t(row_a + r) * k + gk] : T(0);
-        }
-#pragma unroll
-        for (int i = threadIdx.x; i < Config::kTileN * BK; i += Config::kThreads) {
-            int r = i / BK, c = i % BK;
-            std::int64_t gk = std::int64_t(ktile) * BK + c;
-            bool valid = ktile < end_tile && row_b + r < n && gk < k;
-            sb(r, c, stage) = valid ? b[std::size_t(row_b + r) * k + gk] : T(0);
-        }
+        for (int i = 0; i < size(accum); ++i) tCgWS(i) = accum(i);
+        return;
     }
-    cute::cp_async_fence();
-}
 
-}  // namespace splitk_detail
-
-// Parallel Split-K: each CTA owns an independent K interval, writes FP32
-// partials, and a second kernel reduces them in a fixed order. S=1 writes C
-// directly. No atomics, half partials, workspace memset, or inter-CTA spinlocks.
-template <class Config = SplitKConfig<>, bool Vectorized = true, bool Split = true>
-__global__ __launch_bounds__(Config::kThreads)
-void hgemm_splitk(cute::half_t* __restrict__ c,
-    const cute::half_t* __restrict__ a,
-    const cute::half_t* __restrict__ b,
-    float* __restrict__ partials, int m, int n, int k, int splits) {
-    using namespace cute;
-    constexpr int BM = Config::kTileM, BN = Config::kTileN, BK = Config::kTileK;
-    constexpr int S = Config::kStages;
-    // 将 M/N tile 网格展平到 grid.x，grid.z 专门表示 K 分区。
-    // begin/end 是 tile 索引，不是元素索引；整数比例切分允许不均匀分区，
-    // 相邻分区的边界相接，完整覆盖 [0,ceil(K/BK)) 且没有重叠。
-    int tiles_n = n / BN + (n % BN != 0);
-    int row_a = (blockIdx.x / tiles_n) * BM;
-    int row_b = (blockIdx.x % tiles_n) * BN;
-    int total_tiles = k / BK + (k % BK != 0);
-    int begin = int(std::int64_t(total_tiles) * blockIdx.z / splits);
-    int end = int(std::int64_t(total_tiles) * (blockIdx.z + 1) / splits);
-
-    // A/B 分别在动态 shared memory 中持有 S 个 stage；cosize 考虑了
-    // CuTe layout 的实际寻址范围。16-byte 对齐满足异步拷贝要求。
-    extern __shared__ __align__(16) unsigned char storage[];
-    auto* raw = reinterpret_cast<half_t*>(storage);
-    auto sa = make_tensor(make_smem_ptr(raw), typename Config::SmemA{});
-    auto sb = make_tensor(make_smem_ptr(raw + cosize(typename Config::SmemA{})),
-        typename Config::SmemB{});
-    // 每个线程只持有自身的 operand/accumulator fragment。
-    // make_tiled_copy_A/B + retile_D 连接 ldmatrix 的拷贝布局与 MMA 布局，
-    // 不能假设连续线程各自拥有连续的输出元素。
-    typename Config::TiledMMA mma;
-    auto thread_mma = mma.get_slice(threadIdx.x);
-    auto ra = thread_mma.partition_fragment_A(sa(_, _, 0));
-    auto rb = thread_mma.partition_fragment_B(sb(_, _, 0));
-    auto rc = partition_fragment_C(mma, Shape<Int<BM>, Int<BN>>{});
-    clear(rc);
-    auto copy_a = make_tiled_copy_A(Copy_Atom<SM75_U32x4_LDSM_N, half_t>{}, mma);
-    auto copy_b = make_tiled_copy_B(Copy_Atom<SM75_U32x4_LDSM_N, half_t>{}, mma);
-    auto ta = copy_a.get_slice(threadIdx.x);
-    auto tb = copy_b.get_slice(threadIdx.x);
-    auto from_a = ta.partition_S(sa);
-    auto from_b = tb.partition_S(sb);
-    auto to_a = ta.retile_D(ra);
-    auto to_b = tb.retile_D(rb);
-
-    // Keep exactly S-1 committed groups ahead. Even the drain commits zero-filled
-    // groups, so wait_group<S-2> always waits for the stage about to be consumed.
+    // Prologue: kStages-1 tiles in flight. The group count matters as much as
+    // the data: the consumer below waits a fixed kStages-2 groups per iteration,
+    // so a short K interval has to commit the same number of groups, using empty
+    // ones for the tiles that do not exist.
+    int smem_wr = 0;
 #pragma unroll
-    for (int s = 0; s < S - 1; ++s)
-        splitk_detail::load_tile<Config, Vectorized>(
-            a, b, sa, sb, m, n, k, row_a, row_b, begin + s, end, s);
+    for (int s = 0; s < kStages - 1; ++s) {
+        if (s < k_count) {
+            copy(G2SCopy{}, tAgA(_, _, _, k_begin + s), tAsA(_, _, _, smem_wr));
+            copy(G2SCopy{}, tBgB(_, _, _, k_begin + s), tBsB(_, _, _, smem_wr));
+            smem_wr = (smem_wr + 1) % kStages;
+        }
+        cp_async_fence();
+    }
 
-    for (int tile = begin; tile < end; ++tile) {
-        int read_stage = (tile - begin) % S;
-        cp_async_wait<S - 2>();
+    // Steady state.
+    int smem_rd = 0;
+    for (int k = 0; k < k_count; ++k) {
+        cp_async_wait<kStages - 2>();
         __syncthreads();
-        // The spare stage overlaps global-memory traffic with the current MMA.
-        int write_stage = (tile - begin + S - 1) % S;
-        splitk_detail::load_tile<Config, Vectorized>(
-            a, b, sa, sb, m, n, k, row_a, row_b, tile + S - 1, end, write_stage);
-        copy(copy_a, from_a(_, _, _, read_stage), to_a);
-        copy(copy_b, from_b(_, _, _, read_stage), to_b);
-#pragma unroll
-        for (int kk = 0; kk < size<2>(ra); ++kk)
-            gemm(mma, rc, ra(_, _, kk), rb(_, _, kk), rc);
-        __syncthreads();  // all readers finish before a stage can be reused
+
+        // rA/rB are the ldmatrix-shaped views of the MMA fragments: the copies
+        // write through them, gemm() reads the same registers as tCrA/tCrB.
+        copy(s2r_copy_a, tCsA(_, _, _, smem_rd), rA);
+        copy(s2r_copy_b, tCsB(_, _, _, smem_rd), rB);
+
+        if (k + kStages - 1 < k_count) {
+            copy(G2SCopy{}, tAgA(_, _, _, k_begin + k + kStages - 1), tAsA(_, _, _, smem_wr));
+            copy(G2SCopy{}, tBgB(_, _, _, k_begin + k + kStages - 1), tBsB(_, _, _, smem_wr));
+            smem_wr = (smem_wr + 1) % kStages;
+        }
+        cp_async_fence();
+
+        gemm(tiled_mma, accum, tCrA, tCrB, accum);
+        smem_rd = (smem_rd + 1) % kStages;
     }
     cp_async_wait<0>();
     __syncthreads();
 
-    // 对 identity tensor 做与 accumulator 一样的 partition，得到每个
-    // rc(i) 对应的真实 (M,N) 坐标，再逐元素做尾部 predicate。
-    // Split-K 路径先存 FP32，避免每个分区各自舍入为 FP16 后再相加。
-    auto coords = thread_mma.partition_C(make_identity_tensor(Shape<Int<BM>, Int<BN>>{}));
+    // Epilogue: the accumulator is partitioned against the output tile, so the
+    // same partition that addresses C also addresses this split's slab.
+    if (splits == 1) {
+        Tensor gC = local_tile(
+            make_tensor(make_gmem_ptr(C), make_layout(make_shape(M, N), make_stride(N, _1{}))),
+            make_shape(BM_t{}, BN_t{}), make_coord(iy, ix));
+        Tensor tCgC = thr_mma.partition_C(gC);
 #pragma unroll
-    for (int i = 0; i < size(rc); ++i) {
-        int r = row_a + get<0>(coords(i)), col = row_b + get<1>(coords(i));
-        if (r < m && col < n) {
-            std::size_t offset = std::size_t(r) * n + col;
-            if constexpr (Split)
-                partials[std::size_t(blockIdx.z) * m * n + offset] = rc(i);
-            else
-                c[offset] = half_t(rc(i));
-        }
-    }
-}
-
-namespace splitk_detail {
-// workspace 为 [splits,M*N]；每个输出由一个线程按固定 split 顺序求和。
-// 相邻线程访问相邻输出，因此每轮 split 的读取都是合并访问。
-static __global__ void reduce(cute::half_t* out, const float* partials,
-    std::size_t count, int splits) {
-    for (std::size_t i = std::size_t(blockIdx.x) * blockDim.x + threadIdx.x;
-        i < count; i += std::size_t(blockDim.x) * gridDim.x) {
-        float sum = 0;
-        for (int s = 0; s < splits; ++s) sum += partials[std::size_t(s) * count + i];
-        out[i] = cute::half_t(sum);
-    }
-}
-}  // namespace splitk_detail
-
-// 可复用的 host launch 参数。workspace 不在 plan 内分配或持有，避免
-// 把分配、初始化或 device 查询纳入 kernel 时间及 CUDA Graph capture。
-struct HgemmSplitKPlan {
-    int m = 0, n = 0, k = 0, splits = 1;
-    std::size_t workspace_bytes = 0;
-};
-
-// sm_count is explicit: device queries belong in setup, outside CUDA graphs.
-// requested_splits=0 uses a conservative occupancy heuristic; tune externally.
-inline cudaError_t make_hgemm_splitk_plan(HgemmSplitKPlan* plan, int m, int n,
-    int k, int requested_splits = 0,
-    int sm_count = 80) {
-    if (!plan || m < 0 || n < 0 || k < 0 || requested_splits < 0 || sm_count <= 0)
-        return cudaErrorInvalidValue;
-    int tiles_k = splitk_detail::ceil_div(k, 32);
-    std::size_t blocks = std::size_t(splitk_detail::ceil_div(m, 64)) *
-        splitk_detail::ceil_div(n, 64);
-    if (blocks > 2147483647ULL) return cudaErrorInvalidConfiguration;
-    int splits = requested_splits;
-    if (splits == 0) {
-        // 目标约为每个 SM 两个输出 CTA，每个 split 至少保留约 8 个 K tile。
-        // 这是并行度启发式；大 M/N 通常选择 splits=1，跳过额外归约。
-        std::size_t target = std::size_t(sm_count) * 2;
-        int needed = int((target + std::max<std::size_t>(1, blocks) - 1) /
-            std::max<std::size_t>(1, blocks));
-        splits = std::max(1, std::min({needed, 32, tiles_k / 8}));
-    }
-    if (splits > 65535 || (k > 0 && splits > tiles_k)) return cudaErrorInvalidValue;
-    if (!k || !m || !n) splits = 1;
-    std::size_t count = std::size_t(m) * n;
-    if (count > std::numeric_limits<std::size_t>::max() / sizeof(float) / splits)
-        return cudaErrorInvalidValue;
-    *plan = {m, n, k, splits, splits > 1 ? count * splits * sizeof(float) : 0};
-    return cudaSuccess;
-}
-
-inline cudaError_t launch_hgemm_splitk(
-    const HgemmSplitKPlan& plan, cute::half_t* c, const cute::half_t* a,
-    const cute::half_t* b, void* workspace = nullptr, std::size_t workspace_bytes = 0,
-    cudaStream_t stream = nullptr) {
-    // 公开 plan 可被调用方修改，因此 launch 必须重新检查维度、split 数
-    // 和 workspace 大小。这里只检查可在 host 判断的契约，不查询设备。
-    HgemmSplitKPlan checked;
-    auto status = make_hgemm_splitk_plan(&checked, plan.m, plan.n, plan.k, plan.splits);
-    if (status != cudaSuccess || plan.splits != checked.splits ||
-        plan.workspace_bytes != checked.workspace_bytes) return cudaErrorInvalidValue;
-    if (!plan.m || !plan.n) return cudaSuccess;
-    if (!c || reinterpret_cast<std::uintptr_t>(c) % alignof(cute::half_t))
-        return cudaErrorInvalidValue;
-    if (!plan.k) return cudaMemsetAsync(c, 0, std::size_t(plan.m) * plan.n * sizeof(*c), stream);
-    if (!a || !b || reinterpret_cast<std::uintptr_t>(a) % alignof(cute::half_t) ||
-        reinterpret_cast<std::uintptr_t>(b) % alignof(cute::half_t) ||
-        (checked.workspace_bytes && (!workspace || workspace_bytes < checked.workspace_bytes ||
-                reinterpret_cast<std::uintptr_t>(workspace) % alignof(float))))
-        return cudaErrorInvalidValue;
-    using Config = SplitKConfig<>;
-    unsigned blocks = unsigned(std::size_t(splitk_detail::ceil_div(plan.m, 64)) *
-        splitk_detail::ceil_div(plan.n, 64));
-    dim3 grid(blocks, 1, plan.splits);
-    // 每条向量读 8 个 half；行 stride 与两个首地址均对齐才使用 cp.async。
-    // 输出无需 16-byte 对齐，因为 epilogue 使用按元素 predicate 的 store。
-    bool vectorized = plan.k % 8 == 0 &&
-        (reinterpret_cast<std::uintptr_t>(a) | reinterpret_cast<std::uintptr_t>(b)) % 16 == 0;
-#define CK_SPLITK_LAUNCH(V, S) \
-    hgemm_splitk<Config, V, S><<<grid, Config::kThreads, Config::kSharedBytes, stream>>>( \
-        c, a, b, static_cast<float*>(workspace), plan.m, plan.n, plan.k, plan.splits)
-    if (plan.splits == 1) {
-        if (vectorized) { CK_SPLITK_LAUNCH(true, false); }
-        else { CK_SPLITK_LAUNCH(false, false); }
+        for (int i = 0; i < size(accum); ++i) tCgC(i) = static_cast<T>(accum(i));
     } else {
-        if (vectorized) { CK_SPLITK_LAUNCH(true, true); }
-        else { CK_SPLITK_LAUNCH(false, true); }
+        Tensor gWS = local_tile(
+            make_tensor(make_gmem_ptr(ws + (std::size_t)blockIdx.z * M * N),
+                make_layout(make_shape(M, N), make_stride(N, _1{}))),
+            make_shape(BM_t{}, BN_t{}), make_coord(iy, ix));
+        Tensor tCgWS = thr_mma.partition_C(gWS);
+#pragma unroll
+        for (int i = 0; i < size(accum); ++i) tCgWS(i) = accum(i);
     }
-#undef CK_SPLITK_LAUNCH
-    status = cudaGetLastError();
-    if (status != cudaSuccess || plan.splits == 1) return status;
-    std::size_t count = std::size_t(plan.m) * plan.n;
-    unsigned reduce_blocks = unsigned(std::min<std::size_t>((count + 255) / 256, 65535));
-    splitk_detail::reduce<<<reduce_blocks, 256, 0, stream>>>(
-        c, static_cast<const float*>(workspace), count, plan.splits);
+}
+
+// ---------------------------------------------------------------------------
+// Reduce: one thread owns 4 consecutive outputs, so each pass over the
+// workspace is a 16-byte load and the store is two half2.
+// ---------------------------------------------------------------------------
+__global__ void hgemm_splitk_reduce_kernel(
+    float const* __restrict__ ws, T* __restrict__ C, int splits, int MN) {
+    const int base = (blockIdx.x * blockDim.x + threadIdx.x) * 4;
+    if (base >= MN) return;
+
+    float4 sum = *reinterpret_cast<float4 const*>(&ws[base]);
+    for (int z = 1; z < splits; ++z) {
+        const float4 part = *reinterpret_cast<float4 const*>(&ws[(std::size_t)z * MN + base]);
+        sum.x += part.x; sum.y += part.y; sum.z += part.z; sum.w += part.w;
+    }
+    *reinterpret_cast<half2*>(&C[base]) = __float22half2_rn(make_float2(sum.x, sum.y));
+    *reinterpret_cast<half2*>(&C[base + 2]) = __float22half2_rn(make_float2(sum.z, sum.w));
+}
+
+// ---------------------------------------------------------------------------
+// Host side.
+// ---------------------------------------------------------------------------
+
+// Whole tiles only, as in gemm.cuh.
+inline bool can_launch(int M, int N, int K) {
+    return M > 0 && N > 0 && K > 0 && M % BM_t::value == 0 && N % BN_t::value == 0 &&
+        K % BK_t::value == 0;
+}
+
+// Workspace is [splits, M, N] FP32. Splits of 1 write C directly and need none.
+inline std::size_t hgemm_splitk_workspace_bytes(int M, int N, int splits) {
+    return (std::size_t)4 * splits * M * N;
+}
+
+inline cudaError_t hgemm_splitk_launch(int M, int N, int K, T const* A, T const* B, T* C,
+    float* ws, int splits = 1, cudaStream_t stream = nullptr) {
+    if (!can_launch(M, N, K)) return cudaErrorNotSupported;
+    if (splits < 1 || splits > 65535) return cudaErrorInvalidValue;
+    if (!A || !B || !C) return cudaErrorInvalidValue;
+    if (splits > 1 && !ws) return cudaErrorInvalidValue;
+
+    static bool configured = false;
+    if (!configured) {
+        auto status = cudaFuncSetAttribute(
+            hgemm_splitk_kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, kSmemBytes);
+        if (status != cudaSuccess) return status;
+        configured = true;
+    }
+    // blockIdx.x walks N and blockIdx.y walks M, matching the kernel.
+    dim3 grid(N / BN_t::value, M / BM_t::value, splits);
+    hgemm_splitk_kernel<<<grid, kThreads, kSmemBytes, stream>>>(A, B, ws, C, M, N, K, splits);
+    auto status = cudaGetLastError();
+    if (status != cudaSuccess || splits == 1) return status;
+
+    const int MN = M * N;
+    hgemm_splitk_reduce_kernel<<<(MN / 4 + 255) / 256, 256, 0, stream>>>(ws, C, splits, MN);
     return cudaGetLastError();
 }
 
-}  // namespace cute_kernel
+}  // namespace hgemm_splitk

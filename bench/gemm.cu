@@ -51,41 +51,49 @@ void run_gemm(Context& context, const Options& o) {
     evaluate(o, "cublas", blas, dc, reference, context.stream, 0.01, 0.002,
         "GemmEx,FP32_accumulate,default_math,FP32_reduction", Context::kBlasWorkspaceBytes);
 
-    if (context.prop.major >= 8) {
-        cute_kernel::HgemmSplitKPlan best_plan;
-        CUDA_CHECK(cute_kernel::make_hgemm_splitk_plan(&best_plan, o.m, o.n, o.k, 0, context.prop.multiProcessorCount));
+    if (context.prop.major >= 8 && hgemm_splitk::can_launch(o.m, o.n, o.k)) {
+        // 搜索 splits；每个候选先过正确性检查，再短跑计时。workspace 与工业
+        // 基线使用同一个 32 MiB 上限。
+        int best_splits = 1;
         double best = std::numeric_limits<double>::infinity();
-        std::vector<int> candidates = o.tune ? std::vector<int>{1, 2, 4, 8, 16, 32} : std::vector<int>{best_plan.splits};
-        // 给自有 Split-K 搜索设置与工业基线相同的 32 MiB workspace 上限。
-        // 创建候选/分配/正确性验证/短跑均不进入最终 evaluate() 的采样。
+        std::vector<int> candidates = o.tune ? std::vector<int>{1, 2, 4, 8, 16, 32} : std::vector<int>{1};
         for (int splits : candidates) {
-            cute_kernel::HgemmSplitKPlan plan;
-            if (cute_kernel::make_hgemm_splitk_plan(&plan, o.m, o.n, o.k, splits) != cudaSuccess) continue;
-            if (plan.workspace_bytes > Context::kBlasWorkspaceBytes) continue;
-            Buffer<unsigned char> workspace(plan.workspace_bytes);
-            auto fn = [&] { CUDA_CHECK(cute_kernel::launch_hgemm_splitk(plan, dc.ptr, da.ptr, db.ptr,
-                    workspace.ptr, workspace.size, context.stream)); };
+            if (splits > (o.k + 31) / 32) continue;
+            std::size_t bytes = hgemm_splitk::hgemm_splitk_workspace_bytes(o.m, o.n, splits);
+            if (bytes > Context::kBlasWorkspaceBytes) continue;
+            Buffer<unsigned char> workspace(bytes);
+            auto* ws = reinterpret_cast<float*>(workspace.ptr);
+            auto fn = [&] {
+                CUDA_CHECK(hgemm_splitk::hgemm_splitk_launch(
+                    o.m, o.n, o.k, da.ptr, db.ptr, dc.ptr, ws, splits, context.stream));
+            };
             auto accuracy = validate(fn, dc, reference, context.stream, 0.01, 0.002);
             if (!accuracy.passed) {
-                emit(o, "hgemm_splitk_candidate", "correctness_failed", "invalid tuning candidate", "splits=" + std::to_string(splits), &accuracy);
+                emit(o, "hgemm_splitk_candidate", "correctness_failed", "invalid tuning candidate",
+                    "splits=" + std::to_string(splits), &accuracy);
                 continue;
             }
             double time = measure(fn, context.stream, tuning_options(o)).median;
-            if (time < best) { best = time; best_plan = plan; }
+            if (time < best) { best = time; best_splits = splits; }
         }
         if (!std::isfinite(best)) throw std::runtime_error("no correct Split-K candidate");
-        Buffer<unsigned char> workspace(best_plan.workspace_bytes);
-        auto fn = [&] { CUDA_CHECK(cute_kernel::launch_hgemm_splitk(best_plan, dc.ptr, da.ptr, db.ptr,
-                workspace.ptr, workspace.size, context.stream)); };
+        Buffer<unsigned char> workspace(hgemm_splitk::hgemm_splitk_workspace_bytes(o.m, o.n, best_splits));
+        auto fn = [&] {
+            CUDA_CHECK(hgemm_splitk::hgemm_splitk_launch(o.m, o.n, o.k, da.ptr, db.ptr, dc.ptr,
+                reinterpret_cast<float*>(workspace.ptr), best_splits, context.stream));
+        };
         evaluate(o, "hgemm_splitk", fn, dc, reference, context.stream, 0.01, 0.002,
-            "tile=64x64x32,stages=3,splits=" + std::to_string(best_plan.splits), workspace.size);
-        cute_kernel::HgemmSplitKPlan single;
-        CUDA_CHECK(cute_kernel::make_hgemm_splitk_plan(&single, o.m, o.n, o.k, 1));
-        auto single_fn = [&] { CUDA_CHECK(cute_kernel::launch_hgemm_splitk(single, dc.ptr, da.ptr, db.ptr, nullptr, 0, context.stream)); };
+            "tile=64x64x32,stages=3,splits=" + std::to_string(best_splits), workspace.size);
+        auto single_fn = [&] {
+            CUDA_CHECK(hgemm_splitk::hgemm_splitk_launch(
+                o.m, o.n, o.k, da.ptr, db.ptr, dc.ptr, nullptr, 1, context.stream));
+        };
         evaluate(o, "hgemm_splitk_s1", single_fn, dc, reference, context.stream, 0.01, 0.002, "splits=1");
     } else {
-        emit(o, "hgemm_splitk", "unsupported", "requires SM80 or newer");
-        emit(o, "hgemm_splitk_s1", "unsupported", "requires SM80 or newer");
+        emit(o, "hgemm_splitk", "unsupported",
+            context.prop.major < 8 ? "requires SM80 or newer"
+                                   : "shape needs M,N multiples of 64 and K a multiple of 32");
+        emit(o, "hgemm_splitk_s1", "unsupported", "same tile constraints as hgemm_splitk");
     }
 
     LtMatmul lt(o.m, o.n, o.k, CUDA_R_16F);

@@ -1,0 +1,18 @@
+{
+  "benchmark": {
+    "shape_count": 17,
+    "provider_records": 34,
+    "passed_records": 34,
+    "samples_per_record": 9,
+    "max_abs_error": 0.00047218799591064453,
+    "max_scaled_error": 0.1158142015337944,
+    "recorded_source_hashes_match": true
+  },
+  "sanitizer": {
+    "kernel_filter": "kns=flash_attn_fwd_kernel",
+    "cases_per_tool": 9,
+    "memcheck": {"returncode": 0, "errors": 0, "log": "memcheck.log"},
+    "racecheck": {"returncode": 0, "errors": 0, "warnings": 0, "log": "racecheck.log"},
+    "synccheck": {"returncode": 0, "errors": 0, "log": "synccheck.log"}
+  }
+}
